@@ -1,0 +1,16 @@
+{
+  "name": "roact-dnd",
+  "version": "0.0.1",
+  "description": "",
+  "main": "src/ts.lua",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@rbxts/roact": "^1.0.7",
+    "@rbxts/types": "^1.0.235"
+  }
+}

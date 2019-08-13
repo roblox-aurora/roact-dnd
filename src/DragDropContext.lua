@@ -35,6 +35,16 @@ function DragDropContext:RemoveSource(src)
     self._dragSources[src] = nil
 end
 
+function DragDropContext:GetTargetsByDropId(dropId)
+    local targets = {}
+    for instance, target in next, self._dropTargets do
+        if (target.dropId == dropId) then
+            table.insert(targets, {Instance = instance, Target = target})
+        end
+    end
+    return targets
+end
+
 DragDropContext.Default = DragDropContext.new()
 
 return DragDropContext

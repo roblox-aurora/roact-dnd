@@ -6,9 +6,7 @@ return function(Roact)
     function DragDropProvider:init(props)
         local context = props.context or DragDropContext.Default
 
-        self._context[storeKey] = {
-            context = context
-        }
+        self._context[storeKey] = context
     end
 
     function DragDropProvider:render()

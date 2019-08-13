@@ -22,11 +22,6 @@ interface DragTargetWrapper<P> {
   };
 }
 
-interface IDraggableOptions {
-  snap?: boolean;
-  snapIgnoresOffset?: boolean;
-}
-
 type IDragDropHandler<T extends GuiObject> = Roact.JsxIntrinsic<T> & {
   DropId: string | number | symbol;
   Ref?: (rbx: T) => void;
@@ -37,6 +32,13 @@ type IDropTarget<T extends GuiObject> = IDragDropHandler<T> & {
    * An event that's called when a `DragSource` is successfully dropped onto this target
    */
   TargetDropped: (Data: unknown) => void;
+
+  /**
+   * The priority of this `DropTarget`.
+   * 
+   * A target with a higher priority will be chosen if there are multiple `DropTarget`s in the same area.
+   */
+  TargetPriority?: number;
 };
 type IDragSource<T extends GuiObject> = IDragDropHandler<T> & {
   /** The data that will be sent to the `DropTarget` if this `DragSource` successfully drops on this target */
@@ -80,7 +82,7 @@ declare namespace RoactDnD {
   // ): DragSourceWrapper<P>;
 
   // export function createDragTarget<P, A extends unknown>(
-  //     innerComponent: StatefulComponent<P>,
+  //     innerComponent: keyof CreatableInstances, // StatefulComponent<P>,
   //     onDragEnd: (data: A) => void,
   //     options?: IDraggableOptions
   // ): DragTargetWrapper<P>;

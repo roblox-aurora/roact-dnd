@@ -3,25 +3,19 @@ return function(Roact)
     local join = require(script.Parent.join)
     local elementKind = require(script.Parent.elementKind)
 
-    local function createDragSource(innerComponent, options)
-        options = options or {}
-        local snap = options.snap
-        local snapIgnoresOffset = options.snapIgnoresOffset
-
-        snapIgnoresOffset = not (not snapIgnoresOffset)
-
-        local componentName = ("DragTarget(%s)"):format(tostring(innerComponent))
+    local function createDragSource(innerComponent)
+        local componentName = ("DragSource(%s)"):format(tostring(innerComponent))
         local Connection = Roact.Component:extend(componentName)
 
         function Connection:init(props)
             local dropContext = self._context[storeKey]
             if not dropContext then
-                error("A top-level DropContext was not provided in the heirachy.")
+                error("A top-level DragDropProvider was not provided in the heirachy.")
             end
 
             local computedProps = {}
             for key, value in next, props do
-                if (key ~= "DropId" and key ~= "TargetData" and key ~= "DropBehaviour" and key ~= "DragSnapBehaviour") then
+                if (key ~= "DropId" and key ~= "TargetData" and key ~= "DragConstraint" and key ~= "DropResetsPosition") then
                     computedProps[key] = value
                 end
             end
@@ -147,7 +141,7 @@ return function(Roact)
 
             if (self._rbx) then
                 local dropContext = self._context[storeKey]
-                dropContext.context:RemoveSource(self._rbx)
+                dropContext:RemoveSource(self._rbx)
             end
         end
 

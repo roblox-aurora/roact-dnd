@@ -18,13 +18,26 @@ return function(Roact)
             if not dropContext then
                 error("A top-level DropContext was not provided in the heirachy.")
             end
+
+            local computedProps = {}
+            for key, value in next, props do
+                if (key ~= "DropId" and key ~= "TargetData" and key ~= "DropBehaviour" and key ~= "DragSnapBehaviour") then
+                    computedProps[key] = value
+                end
+            end
+
+            self.state = {
+                computedProps = computedProps
+            }
         end
 
         function Connection:didMount()
+            local props = self.props
+            local snapBehaviour = props.DragConstraint or "None"
+            local dropResetsPosition = props.DropResetsPosition
+
             local gui = self._rbx
             if (gui) then
-                gui.Draggable = true
-
                 local dragging
                 local dragInput
                 local dragStart
@@ -33,11 +46,11 @@ return function(Roact)
                 local function update(input)
                     local ul, br = game:GetService("GuiService"):GetGuiInset()
                     local view = workspace.CurrentCamera.ViewportSize
-                    local screen = snapIgnoresOffset and view or view - ul + br
+                    local screen = snapBehaviour == "ViewportIgnoreInset" and view or view - ul + br
 
                     local delta = input.Position - dragStart
 
-                    if snap then
+                    if snapBehaviour ~= "None" then
                         local scaleOffsetX = screen.X * startPos.X.Scale
                         local scaleOffsetY = screen.Y * startPos.Y.Scale
                         local resultingOffsetX = startPos.X.Offset + delta.X
@@ -81,7 +94,20 @@ return function(Roact)
                             input.Changed:Connect(
                                 function()
                                     if input.UserInputState == Enum.UserInputState.End then
+                                        -- On Drop
                                         dragging = false
+
+                                        -- TODO: Fire 'TargetDropped' prop of any DropTargets underneath
+
+                                        if (dropResetsPosition) then
+                                            gui.Position =
+                                                UDim2.new(
+                                                startPos.X.Scale,
+                                                startPos.X.Offset,
+                                                startPos.Y.Scale,
+                                                startPos.Y.Offset
+                                            )
+                                        end
                                     end
                                 end
                             )
@@ -126,19 +152,12 @@ return function(Roact)
         end
 
         function Connection:render()
-            local props = {}
-            for key, value in next, self.props do
-                if key ~= "TargetData" and key ~= "DropId" then
-                    props[key] = value
-                end
-            end
-
             if (elementKind(innerComponent) == "host") then
                 -- Intercept ref (in case it's user-set)
                 local ref = self.props[Roact.Ref]
-                props[Roact.Ref] = function(rbx)
+                local function refFn(rbx)
                     self._rbx = rbx
-                    
+
                     local dropContext = self._context[storeKey]
                     dropContext.context:AddSource(rbx, self.props.DropId, self.props.TargetData)
 
@@ -146,12 +165,20 @@ return function(Roact)
                         if typeof(ref) == "function" then
                             ref(rbx)
                         else
-                            warn("Cannot use Roact.Ref with DragSource.")
+                            warn("Cannot use Roact.Ref with DragSource")
                         end
                     end
                 end
 
-                return Roact.createElement(innerComponent, join(props))
+                return Roact.createElement(
+                    innerComponent,
+                    join(
+                        self.state.computedProps,
+                        {
+                            [Roact.Ref] = refFn
+                        }
+                    )
+                )
             else
                 return nil
             end

@@ -2,47 +2,47 @@ local DragDropContext = {}
 DragDropContext.__index = DragDropContext
 
 function DragDropContext.new()
-    local self = {
-        _dragSources = {},
-        _dropTargets = {},
-    }
-    return setmetatable(self, DragDropContext)
+	local self = {
+		_dragSources = {},
+		_dropTargets = {}
+	}
+	return setmetatable(self, DragDropContext)
 end
 
 function DragDropContext:AddSource(src, dropId, data)
-    assert(typeof(src) == "Instance" and src:IsA("GuiObject"))
-    assert(typeof(dropId) == "string" or typeof(dropId) == "number")
-    assert(data ~= nil)
+	assert(typeof(src) == "Instance" and src:IsA("GuiObject"))
+	assert(typeof(dropId) == "string" or typeof(dropId) == "number")
+	assert(data ~= nil)
 
-    self._dragSources[src] = { dropId = dropId, data = data }
+	self._dragSources[src] = {dropId = dropId, data = data}
 end
 
 function DragDropContext:AddTarget(src, dropId, onDrop)
-    assert(typeof(src) == "Instance" and src:IsA("GuiObject"))
-    assert(typeof(dropId) == "string" or typeof(dropId) == "number")
-    assert(typeof(onDrop) == "function")
+	assert(typeof(src) == "Instance" and src:IsA("GuiObject"))
+	assert(typeof(dropId) == "string" or typeof(dropId) == "number")
+	assert(typeof(onDrop) == "function", ("OnDrop is of type %s, expected function"):format(typeof(onDrop)))
 
-    self._dropTargets[src] = { dropId = dropId, onDrop = onDrop }
+	self._dropTargets[src] = {dropId = dropId, onDrop = onDrop}
 end
 
 function DragDropContext:RemoveTarget(src)
-    assert(typeof(src) == "Instance")
-    self._dropTargets[src] = nil
+	assert(typeof(src) == "Instance")
+	self._dropTargets[src] = nil
 end
 
 function DragDropContext:RemoveSource(src)
-    assert(typeof(src) == "Instance")
-    self._dragSources[src] = nil
+	assert(typeof(src) == "Instance")
+	self._dragSources[src] = nil
 end
 
 function DragDropContext:GetTargetsByDropId(dropId)
-    local targets = {}
-    for instance, target in next, self._dropTargets do
-        if (target.dropId == dropId) then
-            table.insert(targets, {Instance = instance, Target = target})
-        end
-    end
-    return targets
+	local targets = {}
+	for instance, target in next, self._dropTargets do
+		if (target.dropId == dropId) then
+			table.insert(targets, {Instance = instance, Target = target})
+		end
+	end
+	return targets
 end
 
 DragDropContext.Default = DragDropContext.new()

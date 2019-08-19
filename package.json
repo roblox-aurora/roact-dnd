@@ -1,5 +1,5 @@
 {
-  "name": "roact-dnd",
+  "name": "@rbxts/roact-dnd",
   "version": "0.0.1",
   "description": "",
   "main": "src/ts.lua",

@@ -136,7 +136,7 @@ return function(Roact)
 					self._rbx = rbx
 
 					local dropContext = self._context[storeKey]
-					dropContext.context:AddSource(rbx, self.props.DropId, self.props.TargetData)
+					dropContext:AddSource(rbx, self.props.DropId, self.props.TargetData)
 
 					if ref then
 						if typeof(ref) == "function" then

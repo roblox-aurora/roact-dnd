@@ -6,8 +6,8 @@ local DragDropProvider = require(parent.DragDropProvider)(Roact)
 local DragDropContext = require(parent.DragDropContext)
 
 return {
-	DragFrame = createDragSource("Frame"),
-	DropFrame = createDropTarget("Frame"),
+	DragFrame = createDragSource("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0)}),
+	DropFrame = createDropTarget("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0)}),
 	DragDropProvider = DragDropProvider,
 	DragDropContext = DragDropContext
 }

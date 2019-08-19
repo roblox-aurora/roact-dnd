@@ -3,7 +3,7 @@ return function(Roact)
     local join = require(script.Parent.join)
     local elementKind = require(script.Parent.elementKind)
 
-    local function createDragSource(innerComponent)
+    local function createDragSource(innerComponent, defaults)
         local componentName = ("DragSource(%s)"):format(tostring(innerComponent))
         local Connection = Roact.Component:extend(componentName)
 
@@ -13,7 +13,7 @@ return function(Roact)
                 error("A top-level DragDropProvider was not provided in the heirachy.")
             end
 
-            local computedProps = {}
+            local computedProps = defaults or {}
             for key, value in next, props do
                 if (key ~= "DropId" and key ~= "TargetData" and key ~= "DragConstraint" and key ~= "DropResetsPosition") then
                     computedProps[key] = value

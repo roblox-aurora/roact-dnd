@@ -1,3 +1,4 @@
+local UserInputService = game:GetService("UserInputService")
 return function(Roact)
 	local storeKey = require(script.Parent.storeKey)
 	local join = require(script.Parent.join)

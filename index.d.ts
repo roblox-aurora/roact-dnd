@@ -22,12 +22,16 @@ interface DragTargetWrapper<P> {
 	};
 }
 
+type DropId = string | number | symbol;
+
 type IDragDropHandler<T extends GuiObject> = Roact.JsxObject<T> & {
-	DropId: string | number | symbol;
+	DropId: DropId;
 	Ref?: (rbx: T) => void;
 };
 
 type IDropTarget<T extends GuiObject> = IDragDropHandler<T> & {
+	DropId: DropId | Array<DropId>;
+
 	/**
 	 * An event that's called when a `DragSource` is successfully dropped onto this target
 	 */

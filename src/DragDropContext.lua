@@ -17,12 +17,16 @@ function DragDropContext:AddSource(src, dropId, data)
 	self._dragSources[src] = {dropId = dropId, data = data}
 end
 
-function DragDropContext:AddTarget(src, dropId, onDrop)
+function DragDropContext:AddTarget(src, dropIds, onDrop)
 	assert(typeof(src) == "Instance" and src:IsA("GuiObject"))
 	assert(typeof(dropId) == "string" or typeof(dropId) == "number")
 	assert(typeof(onDrop) == "function", ("OnDrop is of type %s, expected function"):format(typeof(onDrop)))
 
-	self._dropTargets[src] = {dropId = dropId, onDrop = onDrop}
+	if type(dropId) == "table" then
+		self._dropTargets[src] = {dropIds = dropIds, onDrop = onDrop}
+	else
+		self._dropTargets[src] = {dropIds = {dropIds}, onDrop = onDrop}
+	end
 end
 
 function DragDropContext:RemoveTarget(src)
@@ -35,10 +39,20 @@ function DragDropContext:RemoveSource(src)
 	self._dragSources[src] = nil
 end
 
+local function contains(tbl, value)
+	for _, val in next, tbl do
+		if val == value then
+			return true
+		end
+	end
+
+	return false
+end
+
 function DragDropContext:GetTargetsByDropId(dropId)
 	local targets = {}
 	for instance, target in next, self._dropTargets do
-		if (target.dropId == dropId) then
+		if contains(target.dropId, dropId) then
 			table.insert(targets, {Instance = instance, Target = target})
 		end
 	end

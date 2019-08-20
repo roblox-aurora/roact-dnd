@@ -17,16 +17,18 @@ function DragDropContext:AddSource(src, dropId, data)
 	self._dragSources[src] = {dropId = dropId, data = data}
 end
 
-function DragDropContext:AddTarget(src, dropIds, onDrop, priority)
+function DragDropContext:AddTarget(src, props)
+	local dropIds, onDrop, priority = props.DropId, props.TargetDropped, props.TargetPriority or 1
+	local canDrop = props.CanDrop
 	assert(typeof(src) == "Instance" and src:IsA("GuiObject"))
-	assert(typeof(dropId) == "string" or typeof(dropId) == "number")
+	assert(typeof(dropIds) == "string" or typeof(dropIds) == "number")
 	assert(typeof(onDrop) == "function", ("OnDrop is of type %s, expected function"):format(typeof(onDrop)))
 	assert(typeof(priority) == "number")
 
-	if type(dropId) == "table" then
-		self._dropTargets[src] = {dropIds = dropIds, onDrop = onDrop, priority = priority}
+	if type(dropIds) == "table" then
+		self._dropTargets[src] = {dropIds = dropIds, onDrop = onDrop, priority = priority, canDrop = canDrop}
 	else
-		self._dropTargets[src] = {dropIds = {dropIds}, onDrop = onDrop, priority = priority}
+		self._dropTargets[src] = {dropIds = {dropIds}, onDrop = onDrop, priority = priority, canDrop = canDrop}
 	end
 end
 

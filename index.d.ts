@@ -34,8 +34,22 @@ type IDropTarget<T extends GuiObject> = IDragDropHandler<T> & {
 
 	/**
 	 * An event that's called when a `DragSource` is successfully dropped onto this target
+	 * @param targetData the data of the drag target that was dropped
 	 */
-	TargetDropped: (Data: unknown) => void;
+	TargetDropped: (targetData: unknown) => void;
+
+	/**
+	 * Controls whether or not items can be dropped on this target
+	 * @param targetData The target data of the dropping item
+	 */
+	CanDrop?: (targetData: unknown) => boolean;
+
+	/**
+	 * Called when an item hovers over a component
+	 * @param targetData The target data of the hovering item
+	 * @param component The target component of the hovering item
+	 */
+	TargetHover?: (targetData: unknown, component: Instance) => boolean;
 
 	/**
 	 * The priority of this `DropTarget`.
@@ -47,6 +61,22 @@ type IDropTarget<T extends GuiObject> = IDragDropHandler<T> & {
 type IDragSource<T extends GuiObject> = IDragDropHandler<T> & {
 	/** The data that will be sent to the `DropTarget` if this `DragSource` successfully drops on this target */
 	TargetData: unknown;
+
+	/**
+	 * Controls whether or not this item can be dragged
+	 * @param targetData The target data of this item
+	 */
+	CanDrag?: (targetData: unknown) => boolean;
+
+	/**
+	 * Called when the drag begins
+	 */
+	DragBegin?: () => void;
+
+	/**
+	 * Called when the drag ends
+	 */
+	DragEnd?: () => void;
 
 	/**
 	 * How the dragging is constrained

@@ -16,7 +16,12 @@ return function(Roact)
 
 			local computedProps = defaults or {}
 			for key, value in next, props do
-				if (key ~= "DropId" and key ~= "TargetData" and key ~= "DragConstraint" and key ~= "DropResetsPosition") then
+				if
+					(key ~= "DropId" and key ~= "TargetData" and key ~= "DragConstraint" and key ~= "DropResetsPosition" and
+						key ~= "CanDrag" and
+						key ~= "DragBegin" and
+						key ~= "DragEnd")
+				 then
 					computedProps[key] = value
 				end
 			end
@@ -29,8 +34,13 @@ return function(Roact)
 		function Connection:didMount()
 			local props = self.props
 			local snapBehaviour = props.DragConstraint or "None"
+			local canDrag = props.CanDrag or function()
+					return true
+				end
 			local dropResetsPosition = props.DropResetsPosition
 			local dropContext = self._context[storeKey]
+			local dragBegin = props.DragBegin
+			local dragEnd = props.DragEnd
 
 			local gui = self._rbx
 			if (gui) then
@@ -75,11 +85,18 @@ return function(Roact)
 				self._inputBegan =
 					gui.InputBegan:Connect(
 					function(input)
-						if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+						if
+							(input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and
+								canDrag(self.props.TargetData)
+						 then
 							dragging = true
 							dragStart = input.Position
 							startPos = (dragGui or gui).Position
 							dropTargets = dropContext:GetTargetsByDropId(self.props.DropId) -- Prefetch drop targets here
+
+							if type(dragBegin) == "function" then
+								dragBegin()
+							end
 
 							input.Changed:Connect(
 								function()
@@ -88,6 +105,10 @@ return function(Roact)
 										dragging = false
 
 										-- TODO: Fire 'TargetDropped' prop of any DropTargets underneath
+
+										if type(dragEnd) == "function" then
+											dragEnd()
+										end
 
 										if (dropResetsPosition) then
 											gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset, startPos.Y.Scale, startPos.Y.Offset)

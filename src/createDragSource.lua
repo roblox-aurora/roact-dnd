@@ -30,6 +30,7 @@ return function(Roact)
 			local props = self.props
 			local snapBehaviour = props.DragConstraint or "None"
 			local dropResetsPosition = props.DropResetsPosition
+			local dropContext = self._context[storeKey]
 
 			local gui = self._rbx
 			if (gui) then
@@ -37,6 +38,7 @@ return function(Roact)
 				local dragInput
 				local dragStart
 				local startPos
+				local dropTargets
 
 				local function update(input)
 					local ul, br = game:GetService("GuiService"):GetGuiInset()
@@ -77,6 +79,7 @@ return function(Roact)
 							dragging = true
 							dragStart = input.Position
 							startPos = (dragGui or gui).Position
+							dropTargets = dropContext:GetTargetsByDropId(self.props.DropId) -- Prefetch drop targets here
 
 							input.Changed:Connect(
 								function()

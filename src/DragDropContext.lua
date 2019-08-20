@@ -17,15 +17,16 @@ function DragDropContext:AddSource(src, dropId, data)
 	self._dragSources[src] = {dropId = dropId, data = data}
 end
 
-function DragDropContext:AddTarget(src, dropIds, onDrop)
+function DragDropContext:AddTarget(src, dropIds, onDrop, priority)
 	assert(typeof(src) == "Instance" and src:IsA("GuiObject"))
 	assert(typeof(dropId) == "string" or typeof(dropId) == "number")
 	assert(typeof(onDrop) == "function", ("OnDrop is of type %s, expected function"):format(typeof(onDrop)))
+	assert(typeof(priority) == "number")
 
 	if type(dropId) == "table" then
-		self._dropTargets[src] = {dropIds = dropIds, onDrop = onDrop}
+		self._dropTargets[src] = {dropIds = dropIds, onDrop = onDrop, priority = priority}
 	else
-		self._dropTargets[src] = {dropIds = {dropIds}, onDrop = onDrop}
+		self._dropTargets[src] = {dropIds = {dropIds}, onDrop = onDrop, priority = priority}
 	end
 end
 
@@ -51,6 +52,14 @@ end
 
 function DragDropContext:GetTargetsByDropId(dropId)
 	local targets = {}
+
+	table.sort(
+		self._dropTargets,
+		function(a, b)
+			return a.priority > b.priority
+		end
+	)
+
 	for instance, target in next, self._dropTargets do
 		if contains(target.dropId, dropId) then
 			table.insert(targets, {Instance = instance, Target = target})

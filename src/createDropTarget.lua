@@ -7,7 +7,7 @@ return function(Roact)
         local componentName = ("DropTarget(%s)"):format(tostring(innerComponent))
         local Connection = Roact.Component:extend(componentName)
 
-        function Connection:init(props)
+		function Connection:init(props)
             local dropContext = self._context[storeKey]
             if not dropContext then
                 error("A top-level DragDropProvider was not provided in the heirachy.")
@@ -39,7 +39,7 @@ return function(Roact)
                     self._rbx = rbx
 
                     local context = self._context[storeKey]
-                    context:AddTarget(rbx, self.props.DropId, self.props.TargetDropped)
+                    context:AddTarget(rbx, self.props.DropId, self.props.TargetDropped, self.props.TargetPriority or 1)
 
                     if ref then
                         if typeof(ref) == "function" then

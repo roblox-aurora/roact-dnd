@@ -26,6 +26,7 @@ local function render()
 									end,
 									DropId = "Ex1",
 									TargetDropped = function(data, gui)
+										print("Dropped on frame")
 										if dropFrame then
 											gui.Position = dropFrame.Position
 										end
@@ -49,6 +50,10 @@ local function render()
 									BackgroundColor3 = Color3.fromRGB(0, 0, 0),
 									DragEnd = function()
 										-- handle = Roact.update(handle, render())
+										print("user stopped dragging")
+									end,
+									DragBegin = function()
+										print("user began dragging")
 									end
 								},
 								{

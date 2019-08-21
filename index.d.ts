@@ -95,10 +95,16 @@ interface IDragSource<T extends GuiObject> extends IDragDropHandler<DropId, T> {
 	DropResetsPosition?: boolean;
 }
 
+interface Action<A = any> {
+	type: A;
+}
+
 declare namespace RoactDnD {
 	class DragDropContext {
 		constructor(options?: unknown); // TODO: Options, eventually
 		static Default: DragDropContext;
+
+		public dispatch(action: Action): void;
 	}
 
 	interface DragDropProviderProps {

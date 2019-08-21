@@ -56,7 +56,7 @@ return function(Roact)
 			local dragEnd = props.DragEnd
 
 			local gui = self._binding:getValue()
-			dropContext:AddSource(self._binding, self.props.DropId, self.props.TargetData)
+			dropContext:dispatch({type = "REGISTRY/ADD_SOURCE", source = self._binding, props = self.props})
 
 			if (gui) then
 				local dragging
@@ -109,12 +109,8 @@ return function(Roact)
 							dragStart = input.Position
 							startPos = (dragGui or gui).Position
 							dropTargets = dropContext:GetTargetsByDropId(self.props.DropId) -- Prefetch drop targets here
-							local source = dropContext:GetSource(self._binding)
-							print("drag begin")
 
-							if type(dragBegin) == "function" then
-								dragBegin()
-							end
+							dropContext:dispatch({type = "DRAG/BEGIN", source = self._binding})
 
 							input.Changed:Connect(
 								function()
@@ -140,19 +136,26 @@ return function(Roact)
 														targetGuiPos + targetGuiSize
 													))
 												 then
-													target.OnDrop(self.props.TargetData, gui)
+													-- target.OnDrop(self.props.TargetData, gui)
+													dropContext:dispatch(
+														{
+															type = "DROP/TARGET",
+															data = self.props.TargetData,
+															dropId = self.props.DropId,
+															source = self._binding,
+															target = target.Binding
+														}
+													)
 													break
 												end
 											end
 										end
 
-										if type(dragEnd) == "function" then
-											dragEnd()
-										end
-
 										if (dropResetsPosition) then
 											gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset, startPos.Y.Scale, startPos.Y.Offset)
 										end
+
+										dropContext:dispatch({type = "DRAG/END", source = self._binding})
 									end
 								end
 							)
@@ -188,8 +191,8 @@ return function(Roact)
 			end
 
 			if (self._rbx) then
-				local dropContext = self._context[storeKey]
-				dropContext:RemoveSource(self._binding)
+				local context = self._context[storeKey]
+				context:dispatch({type = "REGISTRY/REMOVE_SOURCE", source = self._binding})
 				self._bindingUpdate(nil)
 			end
 		end

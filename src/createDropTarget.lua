@@ -43,7 +43,7 @@ return function(Roact)
 		function Connection:willUnmount()
 			if (self._rbx) then
 				local context = self._context[storeKey]
-				context:RemoveTarget(self._binding)
+				context:dispatch({type = "REGISTRY/REMOVE_TARGET", target = self._binding})
 
 				self._bindingUpdate(nil)
 				self._binding = nil
@@ -53,7 +53,7 @@ return function(Roact)
 
 		function Connection:didMount()
 			local context = self._context[storeKey]
-			context:AddTarget(self._binding, self.props)
+			context:dispatch({type = "REGISTRY/ADD_TARGET", target = self._binding, props = self.props})
 		end
 
 		function Connection:render()

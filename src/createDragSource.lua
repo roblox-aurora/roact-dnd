@@ -88,7 +88,7 @@ return function(Roact)
 			end
 
 			if (gui) then
-				local dropTargets
+				local dragInput
 
 				local function update(input, targetGui)
 					assert(targetGui and typeof(targetGui) == "Instance" and targetGui:IsA("GuiObject"))
@@ -120,13 +120,7 @@ return function(Roact)
 						-- targetGui.Position =
 						self:setState(
 							{
-								position = UDim2.new(startPos.X.Scale, resultingOffsetX, startPos.Y.Scale, resultingOffsetY),
-								absolutePosition = UDim2.new(
-									0,
-									(startPos.X.Scale * view.X) + resultingOffsetX,
-									0,
-									(startPos.Y.Scale * view.Y) + resultingOffsetY
-								)
+								position = UDim2.new(startPos.X.Scale, resultingOffsetX, startPos.Y.Scale, resultingOffsetY)
 							}
 						)
 					else
@@ -139,12 +133,6 @@ return function(Roact)
 									startPos.X.Scale,
 									startPos.X.Offset + delta.X,
 									startPos.Y.Scale,
-									startPos.Y.Offset + delta.Y
-								),
-								absolutePosition = UDim2.new(
-									0, --startPos.X.Scale,
-									startPos.X.Offset + delta.X,
-									0, --startPos.Y.Scale,
 									startPos.Y.Offset + delta.Y
 								)
 							}
@@ -246,8 +234,7 @@ return function(Roact)
 					gui.InputChanged:Connect(
 					function(input)
 						if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-							--dragInput = input
-							self:setState({dragInput = input})
+							dragInput = input
 						end
 					end
 				)
@@ -255,7 +242,7 @@ return function(Roact)
 				self._globalInputChanged =
 					UserInputService.InputChanged:Connect(
 					function(input)
-						if input == self.state.dragInput and self.state.dragging then
+						if input == dragInput and self.state.dragging then
 							update(input, self._modalRbx or gui)
 						end
 					end

@@ -24,14 +24,13 @@ interface DragTargetWrapper<P> {
 
 type DropId = string | number | symbol;
 
-type IDragDropHandler<T extends GuiObject> = Roact.JsxObject<T> & {
-	DropId: DropId;
+interface IDragDropHandler<DropIdTypes, T extends Instance> {
+	DropId: DropIdTypes;
 	Ref?: (rbx: T) => void;
-};
+}
 
-type IDropTarget<T extends GuiObject> = IDragDropHandler<T> & {
-	DropId: DropId | Array<DropId>;
-
+interface IDropTarget<T extends GuiObject>
+	extends IDragDropHandler<DropId | Array<DropId>, T> {
 	/**
 	 * An event that's called when a `DragSource` is successfully dropped onto this target
 	 * @param targetData the data of the drag target that was dropped
@@ -57,8 +56,9 @@ type IDropTarget<T extends GuiObject> = IDragDropHandler<T> & {
 	 * A target with a higher priority will be chosen if there are multiple `DropTarget`s in the same area.
 	 */
 	TargetPriority?: number;
-};
-type IDragSource<T extends GuiObject> = IDragDropHandler<T> & {
+}
+
+interface IDragSource<T extends GuiObject> extends IDragDropHandler<DropId, T> {
 	/** The data that will be sent to the `DropTarget` if this `DragSource` successfully drops on this target */
 	TargetData: unknown;
 
@@ -93,7 +93,7 @@ type IDragSource<T extends GuiObject> = IDragDropHandler<T> & {
 	 * If true, will reset the position of the DragTarget's instance when dragging stops
 	 */
 	DropResetsPosition?: boolean;
-};
+}
 
 declare namespace RoactDnD {
 	class DragDropContext {
@@ -121,11 +121,15 @@ declare namespace RoactDnD {
 	//     options?: IDraggableOptions
 	// ): DragTargetWrapper<P>;
 
-	class DragFrame extends Roact.Component<IDragSource<Frame>> {
+	class DragFrame extends Roact.Component<
+		IDragSource<Frame> & Roact.JsxObject<Frame>
+	> {
 		public render(): Roact.Element;
 	}
 
-	class DropFrame extends Roact.Component<IDropTarget<Frame>> {
+	class DropFrame extends Roact.Component<
+		IDropTarget<Frame> & Roact.JsxObject<Frame>
+	> {
 		public render(): Roact.Element;
 	}
 }

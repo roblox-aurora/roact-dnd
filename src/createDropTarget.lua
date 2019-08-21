@@ -50,8 +50,6 @@ return function(Roact)
 			context:dispatch({type = "REGISTRY/REMOVE_TARGET", target = self._binding})
 
 			self._bindingUpdate(nil)
-			self._binding = nil
-			self._bindingUpdate = nil
 		end
 
 		function Connection:didMount()

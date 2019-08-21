@@ -7,7 +7,7 @@ local TestDragDropComponent = Roact.PureComponent:extend("TestDragDropComponent"
 function TestDragDropComponent:init()
 	self:setState {
 		dropped = false,
-		position = UDim2.new(0, 300, 0, 300)
+		position = UDim2.new(0, 0, 0, 0)
 	}
 end
 
@@ -38,32 +38,38 @@ function TestDragDropComponent:render()
 					)
 				}
 			),
-			ExampleDrag = e(
-				RoactDnD.DragFrame,
+			e(
+				"Frame",
+				{Position = UDim2.new(0, 300, 0, 300)},
 				{
-					DropId = "Ex2",
-					TargetData = "Hello, World!",
-					BackgroundTransparency = 0.5,
-					Size = UDim2.new(0, 100, 0, 100),
-					Position = self.state.position,
-					BackgroundColor3 = self.state.dragging and Color3.fromRGB(255, 0, 255) or Color3.fromRGB(0, 0, 0),
-					DragConstraint = "Viewport",
-					IsDragModal = true,
-					DragBegin = function()
-						self:setState({dragging = true})
-					end,
-					DragEnd = function()
-						self:setState({dragging = false})
-					end,
-					-- DropResetsPosition = true,
-				},
-				{
-					e(
-						"TextLabel",
+					ExampleDrag = e(
+						RoactDnD.DragFrame,
 						{
-							Size = UDim2.new(1, 0, 1, 0),
-							Text = self.state.dragging and "Dragging..." or "Drag Me!",
-							BackgroundTransparency = 1
+							DropId = "Ex2",
+							TargetData = "Hello, World!",
+							BackgroundTransparency = 0.5,
+							Size = UDim2.new(0, 100, 0, 100),
+							Position = self.state.position,
+							BackgroundColor3 = self.state.dragging and Color3.fromRGB(255, 0, 255) or Color3.fromRGB(0, 0, 0),
+							DragConstraint = "Viewport",
+							IsDragModal = true,
+							DragBegin = function()
+								self:setState({dragging = true})
+							end,
+							DragEnd = function()
+								self:setState({dragging = false})
+							end
+							-- DropResetsPosition = true,
+						},
+						{
+							e(
+								"TextLabel",
+								{
+									Size = UDim2.new(1, 0, 1, 0),
+									Text = self.state.dragging and "Dragging..." or "Drag Me!",
+									BackgroundTransparency = 1
+								}
+							)
 						}
 					)
 				}

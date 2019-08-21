@@ -118,7 +118,17 @@ return function(Roact)
 						end
 
 						-- targetGui.Position =
-						self:setState({position = UDim2.new(startPos.X.Scale, resultingOffsetX, startPos.Y.Scale, resultingOffsetY)})
+						self:setState(
+							{
+								position = UDim2.new(startPos.X.Scale, resultingOffsetX, startPos.Y.Scale, resultingOffsetY),
+								absolutePosition = UDim2.new(
+									0,
+									(startPos.X.Scale * view.X) + resultingOffsetX,
+									0,
+									(startPos.Y.Scale * view.Y) + resultingOffsetY
+								)
+							}
+						)
 					else
 						-- targetGui.Position =
 						-- 	UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
@@ -129,6 +139,12 @@ return function(Roact)
 									startPos.X.Scale,
 									startPos.X.Offset + delta.X,
 									startPos.Y.Scale,
+									startPos.Y.Offset + delta.Y
+								),
+								absolutePosition = UDim2.new(
+									0, --startPos.X.Scale,
+									startPos.X.Offset + delta.X,
+									0, --startPos.Y.Scale,
 									startPos.Y.Offset + delta.Y
 								)
 							}
@@ -157,7 +173,9 @@ return function(Roact)
 								{
 									dragging = true,
 									dragStart = input.Position,
-									startPos = gui.Position,
+									position = self.props.IsDragModal and UDim2.new(0, gui.AbsolutePosition.X, 0, gui.AbsolutePosition.Y),
+									startPos = self.props.IsDragModal and UDim2.new(0, gui.AbsolutePosition.X, 0, gui.AbsolutePosition.Y) or
+										gui.Position,
 									dropTargets = dropContext:GetTargetsByDropId(self.props.DropId)
 								}
 							)

@@ -3,6 +3,7 @@ return function(Roact)
 	local storeKey = require(script.Parent.storeKey)
 	local join = require(script.Parent.join)
 	local elementKind = require(script.Parent.elementKind)
+	local pointsIntersect = require(script.Parent.guiUtility).pointsIntersect
 
 	local function createDragSource(innerComponent, defaults)
 		local componentName = ("DragSource(%s)"):format(tostring(innerComponent))
@@ -102,6 +103,7 @@ return function(Roact)
 							dragStart = input.Position
 							startPos = (dragGui or gui).Position
 							dropTargets = dropContext:GetTargetsByDropId(self.props.DropId) -- Prefetch drop targets here
+							print("drag begin")
 
 							if type(dragBegin) == "function" then
 								dragBegin()
@@ -114,6 +116,19 @@ return function(Roact)
 										dragging = false
 
 										-- TODO: Fire 'TargetDropped' prop of any DropTargets underneath
+
+										for _, target in next, dropTargets do
+											local targetGui = target.Instance
+											local targetGuiPos = targetGui.AbsolutePosition
+											local sourceGuiPos = gui.AbsolutePosition
+											local targetGuiSize = targetGui.AbsoluteSize
+											local sourceGuiSize = gui.AbsoluteSize
+
+											if (pointsIntersect(sourceGuiPos, sourceGuiPos + sourceGuiSize, targetGuiPos, targetGuiPos + targetGuiSize)) then
+												target.OnDrop(self.props.TargetData, gui)
+												break
+											end
+										end
 
 										if type(dragEnd) == "function" then
 											dragEnd()

@@ -55,16 +55,16 @@ end
 function DragDropContext:GetTargetsByDropId(dropId)
 	local targets = {}
 
-	table.sort(
-		self._dropTargets,
-		function(a, b)
-			return a.priority > b.priority
-		end
-	)
+	-- table.sort(
+	-- 	self._dropTargets,
+	-- 	function(a, b)
+	-- 		return a.priority > b.priority
+	-- 	end
+	-- )
 
 	for instance, target in next, self._dropTargets do
 		if contains(target.dropIds, dropId) then
-			table.insert(targets, {Instance = instance, Target = target})
+			table.insert(targets, {Instance = instance, Target = target, OnDrop = target.onDrop})
 		end
 	end
 	return targets

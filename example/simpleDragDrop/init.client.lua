@@ -5,6 +5,7 @@ local RoactDnD = require(ReplicatedStorage.RoactDnD)
 
 local handle
 local droppedOver = false
+local dropFrame
 
 local function render()
 	return e(
@@ -20,9 +21,14 @@ local function render()
 							ExampleDrop = e(
 								RoactDnD.DropFrame,
 								{
+									[Roact.Ref] = function(rbx)
+										dropFrame = rbx
+									end,
 									DropId = "Ex1",
-									TargetDropped = function(data)
-										print("target Dropped", data)
+									TargetDropped = function(data, gui)
+										if dropFrame then
+											gui.Position = dropFrame.Position
+										end
 									end,
 									Size = UDim2.new(0, 100, 0, 100),
 									BackgroundTransparency = 0.5,
@@ -40,7 +46,10 @@ local function render()
 									BackgroundTransparency = 0.5,
 									Size = UDim2.new(0, 100, 0, 100),
 									Position = UDim2.new(0, 300, 0, 300),
-									BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+									BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+									DragEnd = function()
+										-- handle = Roact.update(handle, render())
+									end
 								},
 								{
 									e("TextLabel", {Size = UDim2.new(1, 0, 1, 0), Text = "Drag Me!", BackgroundTransparency = 1})
@@ -54,4 +63,4 @@ local function render()
 	)
 end
 
-Roact.mount(render(), game.Players.LocalPlayer.PlayerGui, "Example1")
+handle = Roact.mount(render(), game.Players.LocalPlayer.PlayerGui, "Example1")

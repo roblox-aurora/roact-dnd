@@ -24,4 +24,8 @@ local function render()
 	)
 end
 
-handle = Roact.mount(render(), game.Players.LocalPlayer.PlayerGui, "Example1")
+game.Players.LocalPlayer.CharacterAdded:Connect(
+	function()
+		handle = Roact.mount(render(), game.Players.LocalPlayer.PlayerGui, "Example1")
+	end
+)

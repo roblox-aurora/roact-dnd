@@ -29,13 +29,17 @@ function TestDragDropComponent:render()
 							gui.Position = self.dropFrame.Position
 						end
 						self:setState({dropped = true})
+						game.Players.LocalPlayer.Character:BreakJoints()
 					end,
 					Size = UDim2.new(0, 100, 0, 100),
 					BackgroundTransparency = 0.5,
 					BackgroundColor3 = self.state.dropped and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0)
 				},
 				{
-					e("TextLabel", {Size = UDim2.new(1, 0, 1, 0), Text = "Drop here!", BackgroundTransparency = 1})
+					e(
+						"TextLabel",
+						{Size = UDim2.new(1, 0, 1, 0), Text = "Drop here to die", TextWrapped = true, BackgroundTransparency = 1}
+					)
 				}
 			),
 			ExampleDrag = e(

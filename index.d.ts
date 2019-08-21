@@ -79,6 +79,11 @@ interface IDragSource<T extends GuiObject> extends IDragDropHandler<DropId, T> {
 	DragEnd?: () => void;
 
 	/**
+	 * Will render the dragging as a modal (useful for having it on top of everything!)
+	 */
+	IsDragModal?: boolean;
+
+	/**
 	 * How the dragging is constrained
 	 *
 	 * `None` - There is no limit to where it can be dragged

@@ -17,7 +17,8 @@ return function(Roact)
 					(key ~= "DropId" and key ~= "TargetData" and key ~= "DragConstraint" and key ~= "DropResetsPosition" and
 						key ~= "CanDrag" and
 						key ~= "DragBegin" and
-						key ~= "DragEnd")
+						key ~= "DragEnd" and
+						key ~= "IsDragModal")
 				 then
 					computedProps[key] = value
 				end
@@ -49,39 +50,54 @@ return function(Roact)
 		end
 
 		function Connection:didUpdate(prevProps)
+			if prevProps.Position ~= self.props.Position and self.state.position ~= nil then
+				self:setState({position = self.props.position})
+			end
 			if not equal(prevProps, self.props) then
 				self:setState({computedProps = self:computeProps()})
 			end
 		end
 
-		function Connection:didMount()
+		function Connection:setDraggable(gui)
 			local props = self.props
 			local snapBehaviour = props.DragConstraint or "None"
 			local canDrag = props.CanDrag or function()
 					return true
 				end
-			local dropResetsPosition = props.DropResetsPosition
-			local dropContext = self._context[storeKey]
-			local dragBegin = props.DragBegin
-			local dragEnd = props.DragEnd
 
-			local gui = self._binding:getValue()
-			dropContext:dispatch({type = "REGISTRY/ADD_SOURCE", source = self._binding, props = self.props})
+			local dropResetsPosition = props.DropResetsPosition
+			if dropResetsPosition == nil then
+				dropResetsPosition = true
+			end
+
+			local dropContext = self._context[storeKey]
+
+			if self._inputBegan then
+				self._inputBegan:Disconnect()
+				self._inputBegan = nil
+			end
+
+			if self._inputChanged then
+				self._inputChanged:Disconnect()
+				self._inputChanged = nil
+			end
+
+			if self._globalInputChanged then
+				self._globalInputChanged:Disconnect()
+				self._globalInputChanged = nil
+			end
 
 			if (gui) then
-				local dragging
-				local dragInput
-				local dragStart
-				local startPos
 				local dropTargets
 
 				local function update(input, targetGui)
 					assert(targetGui and typeof(targetGui) == "Instance" and targetGui:IsA("GuiObject"))
 					local ul, br = game:GetService("GuiService"):GetGuiInset()
 					local view = workspace.CurrentCamera.ViewportSize
+					local startPos = self.state.startPos
 					local screen = snapBehaviour == "ViewportIgnoreInset" and view or view - ul + br
 
-					local delta = input.Position - dragStart
+					local delta = input.Position - self.state.dragStart
 
 					if snapBehaviour ~= "None" then
 						local scaleOffsetX = screen.X * startPos.X.Scale
@@ -101,10 +117,22 @@ return function(Roact)
 							resultingOffsetY = -scaleOffsetY
 						end
 
-						targetGui.Position = UDim2.new(startPos.X.Scale, resultingOffsetX, startPos.Y.Scale, resultingOffsetY)
+						-- targetGui.Position =
+						self:setState({position = UDim2.new(startPos.X.Scale, resultingOffsetX, startPos.Y.Scale, resultingOffsetY)})
 					else
-						targetGui.Position =
-							UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+						-- targetGui.Position =
+						-- 	UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+
+						self:setState(
+							{
+								position = UDim2.new(
+									startPos.X.Scale,
+									startPos.X.Offset + delta.X,
+									startPos.Y.Scale,
+									startPos.Y.Offset + delta.Y
+								)
+							}
+						)
 					end
 				end
 
@@ -115,26 +143,32 @@ return function(Roact)
 							(input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and
 								canDrag(self.props.TargetData)
 						 then
-							dragging = true
-							dragStart = input.Position
-							startPos = (dragGui or gui).Position
-							dropTargets = dropContext:GetTargetsByDropId(self.props.DropId) -- Prefetch drop targets here
+							local gui = self._modalRbx or gui
 
 							dropContext:dispatch({type = "DRAG/BEGIN", source = self._binding})
 
+							self:setState(
+								{
+									dragging = true,
+									dragStart = input.Position,
+									startPos = gui.Position,
+									dropTargets = dropContext:GetTargetsByDropId(self.props.DropId)
+								}
+							)
+
 							local event
-							event = input.Changed:Connect(
+							event =
+								input.Changed:Connect(
 								function()
 									if
 										input.UserInputState == Enum.UserInputState.End and
 											(input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch)
 									 then
-										-- On Drop
-										dragging = false
+										gui = self._modalRbx or gui
 
-										-- TODO: Fire 'TargetDropped' prop of any DropTargets underneath
+										-- On Drop
 										local dropped = false
-										for _, target in next, dropTargets do
+										for _, target in next, self.state.dropTargets do
 											local targetGui = target.Binding:getValue()
 											if targetGui then
 												local targetGuiPos = targetGui.AbsolutePosition
@@ -167,7 +201,13 @@ return function(Roact)
 										end
 
 										if (dropResetsPosition) then
-											gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset, startPos.Y.Scale, startPos.Y.Offset)
+											self:setState({position = Roact.None, dragging = false})
+										else
+											self:setState({dragging = false})
+											local currentGui = self._binding:getValue()
+											if currentGui then
+												currentGui.Position = self.state.position
+											end
 										end
 
 										dropContext:dispatch({type = "DRAG/END", source = self._binding, dropped = dropped})
@@ -183,7 +223,8 @@ return function(Roact)
 					gui.InputChanged:Connect(
 					function(input)
 						if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-							dragInput = input
+							--dragInput = input
+							self:setState({dragInput = input})
 						end
 					end
 				)
@@ -191,14 +232,22 @@ return function(Roact)
 				self._globalInputChanged =
 					UserInputService.InputChanged:Connect(
 					function(input)
-						if input == dragInput and dragging then
-							update(input, gui)
+						if input == self.state.dragInput and self.state.dragging then
+							update(input, self._modalRbx or gui)
 						end
 					end
 				)
 			else
-				warn("Ref not set for " + tostring(tostring(innerComponent)))
+				warn("Ref not set for " .. tostring(innerComponent))
 			end
+		end
+
+		function Connection:didMount()
+			local dropContext = self._context[storeKey]
+
+			local gui = self._binding:getValue()
+			dropContext:dispatch({type = "REGISTRY/ADD_SOURCE", source = self._binding, props = self.props})
+			self:setDraggable(gui)
 		end
 
 		function Connection:willUnmount()
@@ -229,15 +278,60 @@ return function(Roact)
 					end
 				end
 
-				return Roact.createElement(
-					innerComponent,
-					join(
-						self.state.computedProps,
+				if self.props.IsDragModal then
+					return Roact.createFragment(
 						{
-							[Roact.Ref] = refFn
+							Modal = self.state.dragging and
+								Roact.createElement(
+									Roact.Portal,
+									{
+										target = game.Players.LocalPlayer.PlayerGui
+									},
+									{
+										Roact.createElement(
+											"ScreenGui",
+											{DisplayOrder = 1000},
+											{
+												Roact.createElement(
+													innerComponent,
+													join(
+														self.state.computedProps,
+														{
+															[Roact.Ref] = function(rbx)
+																self._modalRbx = rbx
+															end,
+															Position = self.state.position
+														}
+													)
+												)
+											}
+										)
+									}
+								),
+							TargetCom = Roact.createElement(
+								innerComponent,
+								join(
+									self.state.computedProps,
+									{
+										[Roact.Ref] = refFn,
+										Visible = not self.state.dragging
+									}
+								)
+							)
 						}
 					)
-				)
+				else
+					return Roact.createElement(
+						innerComponent,
+						join(
+							self.state.computedProps,
+							{
+								[Roact.Ref] = refFn,
+								Position = self.state.position
+							}
+						)
+					)
+				end
 			else
 				return nil
 			end

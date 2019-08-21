@@ -58,7 +58,7 @@ return function(Roact)
 
 				self._bindingUpdate(nil)
 				self._binding = nil
-				self._bindinUpdate = nil
+				self._bindingUpdate = nil
 			end
 		end
 

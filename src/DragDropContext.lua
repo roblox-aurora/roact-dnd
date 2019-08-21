@@ -139,8 +139,9 @@ function DragDropContext:dispatch(action)
 		end
 
 		if (canDrop) then
+			local gui = action.source:getValue()
 			-- Run callback TargetDropped on the user side
-			target.onDrop(action.data, action.source:getValue())
+			target.onDrop(action.data, gui)
 		end
 	elseif action.type == "DRAG/BEGIN" then
 		assert(Type.of(action.source) == Type.Binding)

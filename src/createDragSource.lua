@@ -4,7 +4,7 @@ return function(Roact)
 	local join = require(script.Parent.join)
 	local elementKind = require(script.Parent.elementKind)
 	local utility = require(script.Parent.utility)
-	local equal = utility.equal
+	local equal = utility.deepEqual
 
 	local function createDragSource(innerComponent, defaults)
 		local componentName = ("DragSource(%s)"):format(tostring(innerComponent))

@@ -37,28 +37,28 @@ local function deepEqual(t1, t2, ignore_mt)
 	return true
 end
 
-local function equal(t1, t2)
-	local ty1 = type(t1)
-	local ty2 = type(t2)
-	if ty1 ~= ty2 then
-		return false
-	end
+-- local function equal(t1, t2)
+-- 	local ty1 = type(t1)
+-- 	local ty2 = type(t2)
+-- 	if ty1 ~= ty2 then
+-- 		return false
+-- 	end
 
-	if ty1 ~= "table" and ty2 ~= "table" then
-		return t1 == t2
-	end
+-- 	if ty1 ~= "table" and ty2 ~= "table" then
+-- 		return t1 == t2
+-- 	end
 
-	for k, v in next, t1 do
-		if type(v) ~= type(t2[k]) or not equal(v, t2[k]) then
-			return false
-		end
-	end
+-- 	for k, v in next, t1 do
+-- 		if type(v) ~= type(t2[k]) or not equal(v, t2[k]) then
+-- 			return false
+-- 		end
+-- 	end
 
-	return true
-end
+-- 	return true
+-- end
 
 return {
 	pointsIntersect = pointsIntersect,
 	deepEqual = deepEqual,
-	equal = equal
+	-- equal = equal
 }

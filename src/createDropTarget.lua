@@ -3,7 +3,7 @@ return function(Roact)
 	local elementKind = require(script.Parent.elementKind)
 	local join = require(script.Parent.join)
 	local utility = require(script.Parent.utility)
-	local equal = utility.equal
+	local equal = utility.deepEqual
 
 	local function createDropTarget(innerComponent, defaults)
 		local componentName = ("DropTarget(%s)"):format(tostring(innerComponent))

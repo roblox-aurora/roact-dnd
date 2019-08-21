@@ -4,10 +4,26 @@ return function(Roact)
 	local join = require(script.Parent.join)
 	local elementKind = require(script.Parent.elementKind)
 	local utility = require(script.Parent.utility)
+	local equal = utility.equal
 
 	local function createDragSource(innerComponent, defaults)
 		local componentName = ("DragSource(%s)"):format(tostring(innerComponent))
 		local Connection = Roact.Component:extend(componentName)
+
+		function Connection:computeProps()
+			local computedProps = defaults or {}
+			for key, value in next, self.props do
+				if
+					(key ~= "DropId" and key ~= "TargetData" and key ~= "DragConstraint" and key ~= "DropResetsPosition" and
+						key ~= "CanDrag" and
+						key ~= "DragBegin" and
+						key ~= "DragEnd")
+				 then
+					computedProps[key] = value
+				end
+			end
+			return computedProps
+		end
 
 		function Connection:init(props)
 			local dropContext = self._context[storeKey]
@@ -23,25 +39,19 @@ return function(Roact)
 				error(("%s requires a TargetData prop to be set."):format(componentName))
 			end
 
-			local computedProps = defaults or {}
-			for key, value in next, props do
-				if
-					(key ~= "DropId" and key ~= "TargetData" and key ~= "DragConstraint" and key ~= "DropResetsPosition" and
-						key ~= "CanDrag" and
-						key ~= "DragBegin" and
-						key ~= "DragEnd")
-				 then
-					computedProps[key] = value
-				end
-			end
-
 			self.state = {
-				computedProps = computedProps
+				computedProps = self:computeProps()
 			}
 
 			local binding, updateBinding = Roact.createBinding(nil)
 			self._binding = binding
 			self._bindingUpdate = updateBinding
+		end
+
+		function Connection:didUpdate(prevProps)
+			if not equal(prevProps, self.props) then
+				self:setState({computedProps = self:computeProps()})
+			end
 		end
 
 		function Connection:didMount()
@@ -119,7 +129,7 @@ return function(Roact)
 										dragging = false
 
 										-- TODO: Fire 'TargetDropped' prop of any DropTargets underneath
-
+										local dropped = false
 										for _, target in next, dropTargets do
 											local targetGui = target.Binding:getValue()
 											if targetGui then
@@ -146,6 +156,7 @@ return function(Roact)
 															target = target.Binding
 														}
 													)
+													dropped = true
 													break
 												end
 											end
@@ -155,7 +166,7 @@ return function(Roact)
 											gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset, startPos.Y.Scale, startPos.Y.Offset)
 										end
 
-										dropContext:dispatch({type = "DRAG/END", source = self._binding})
+										dropContext:dispatch({type = "DRAG/END", source = self._binding, dropped = dropped})
 									end
 								end
 							)

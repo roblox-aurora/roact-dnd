@@ -151,10 +151,12 @@ function DragDropContext:dispatch(action)
 		end
 	elseif action.type == "DRAG/END" then
 		assert(Type.of(action.source) == Type.Binding)
+		assert(type(action.dropped) == "boolean")
+		local dropped = action.dropped
 		local source = assert(dragSources[action.source])
 
 		if type(source.dragEnd) == "function" then
-			source.dragEnd()
+			source.dragEnd(dropped)
 		end
 	elseif action.type == "REGISTRY/ADD_SOURCE" then
 		assert(Type.of(action.source) == Type.Binding)

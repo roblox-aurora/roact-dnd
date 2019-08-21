@@ -2,10 +2,25 @@ return function(Roact)
 	local storeKey = require(script.Parent.storeKey)
 	local elementKind = require(script.Parent.elementKind)
 	local join = require(script.Parent.join)
+	local utility = require(script.Parent.utility)
+	local equal = utility.equal
 
 	local function createDropTarget(innerComponent, defaults)
 		local componentName = ("DropTarget(%s)"):format(tostring(innerComponent))
 		local Connection = Roact.Component:extend(componentName)
+
+		function Connection:computeProps()
+			local computedProps = defaults or {}
+			for key, value in next, self.props do
+				if
+					key ~= "DropId" and key ~= "TargetDropped" and key ~= "TargetPriority" and key ~= "CanDrop" and
+						key ~= "TargetHover"
+				 then
+					computedProps[key] = value
+				end
+			end
+			return computedProps
+		end
 
 		function Connection:init(props)
 			local dropContext = self._context[storeKey]
@@ -21,23 +36,19 @@ return function(Roact)
 				error(("%s requires a TargetDropped callback prop to be set."):format(componentName))
 			end
 
-			local computedProps = defaults or {}
-			for key, value in next, props do
-				if
-					key ~= "DropId" and key ~= "TargetDropped" and key ~= "TargetPriority" and key ~= "CanDrop" and
-						key ~= "TargetHover"
-				 then
-					computedProps[key] = value
-				end
-			end
-
 			self.state = {
-				computedProps = computedProps
+				computedProps = self:computeProps()
 			}
 
 			local binding, bindingUpdate = Roact.createBinding(nil)
 			self._bindingUpdate = bindingUpdate
 			self._binding = binding
+		end
+
+		function Connection:didUpdate(prevProps)
+			if not equal(prevProps, self.props) then
+				self:setState({computedProps = self:computeProps()})
+			end
 		end
 
 		function Connection:willUnmount()

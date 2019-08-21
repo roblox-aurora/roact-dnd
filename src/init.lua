@@ -1,8 +1,13 @@
 local Roact = require(script.Parent.Roact)
-local createDragSource = require(script.createDragSource)(Roact)
-local createDropTarget = require(script.createDropTarget)(Roact)
+local parent = script
+local createDragSource = require(parent.createDragSource)(Roact)
+local createDropTarget = require(parent.createDropTarget)(Roact)
+local DragDropProvider = require(parent.DragDropProvider)(Roact)
+local DragDropContext = require(parent.DragDropContext)
 
 return {
-    DragFrame = createDragSource("Frame"),
-    DropFrame = createDropTarget("Frame")
+	DragFrame = createDragSource("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0)}),
+	DropFrame = createDropTarget("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0)}),
+	DragDropProvider = DragDropProvider,
+	DragDropContext = DragDropContext
 }

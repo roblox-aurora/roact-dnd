@@ -14,6 +14,14 @@ return function(Roact)
 				error("A top-level DragDropProvider was not provided in the heirachy.")
 			end
 
+			if props.DropId == nil then
+				error(("%s requires a DropId prop to be set."):format(componentName))
+			end
+
+			if props.TargetData == nil then
+				error(("%s requires a TargetData prop to be set."):format(componentName))
+			end
+
 			local computedProps = defaults or {}
 			for key, value in next, props do
 				if
@@ -50,7 +58,8 @@ return function(Roact)
 				local startPos
 				local dropTargets
 
-				local function update(input)
+				local function update(input, targetGui)
+					assert(targetGui and typeof(targetGui) == "Instance" and targetGui:IsA("GuiObject"))
 					local ul, br = game:GetService("GuiService"):GetGuiInset()
 					local view = workspace.CurrentCamera.ViewportSize
 					local screen = snapBehaviour == "ViewportIgnoreInset" and view or view - ul + br
@@ -63,21 +72,21 @@ return function(Roact)
 						local resultingOffsetX = startPos.X.Offset + delta.X
 						local resultingOffsetY = startPos.Y.Offset + delta.Y
 
-						if (resultingOffsetX + scaleOffsetX) > screen.X - gui.AbsoluteSize.X then
-							resultingOffsetX = screen.X - gui.AbsoluteSize.X - scaleOffsetX
+						if (resultingOffsetX + scaleOffsetX) > screen.X - targetGui.AbsoluteSize.X then
+							resultingOffsetX = screen.X - targetGui.AbsoluteSize.X - scaleOffsetX
 						elseif (resultingOffsetX + scaleOffsetX) < 0 then
 							resultingOffsetX = -scaleOffsetX
 						end
 
-						if (resultingOffsetY + scaleOffsetY) > screen.Y - gui.AbsoluteSize.Y then
-							resultingOffsetY = screen.Y - gui.AbsoluteSize.Y - scaleOffsetY
+						if (resultingOffsetY + scaleOffsetY) > screen.Y - targetGui.AbsoluteSize.Y then
+							resultingOffsetY = screen.Y - targetGui.AbsoluteSize.Y - scaleOffsetY
 						elseif (resultingOffsetY + scaleOffsetY) < 0 then
 							resultingOffsetY = -scaleOffsetY
 						end
 
-						gui.Position = UDim2.new(startPos.X.Scale, resultingOffsetX, startPos.Y.Scale, resultingOffsetY)
+						targetGui.Position = UDim2.new(startPos.X.Scale, resultingOffsetX, startPos.Y.Scale, resultingOffsetY)
 					else
-						gui.Position =
+						targetGui.Position =
 							UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 					end
 				end
@@ -133,7 +142,7 @@ return function(Roact)
 					UserInputService.InputChanged:Connect(
 					function(input)
 						if input == dragInput and dragging then
-							update(input)
+							update(input, gui)
 						end
 					end
 				)

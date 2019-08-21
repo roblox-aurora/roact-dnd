@@ -63,7 +63,7 @@ function DragDropContext:GetTargetsByDropId(dropId)
 	)
 
 	for instance, target in next, self._dropTargets do
-		if contains(target.dropId, dropId) then
+		if contains(target.dropIds, dropId) then
 			table.insert(targets, {Instance = instance, Target = target})
 		end
 	end

@@ -13,6 +13,14 @@ return function(Roact)
 				error("A top-level DragDropProvider was not provided in the heirachy.")
 			end
 
+			if props.DropId == nil then
+				error(("%s requires a DropId prop to be set."):format(componentName))
+			end
+
+			if type(props.TargetDropped) ~= "function" then
+				error(("%s requires a TargetDropped callback prop to be set."):format(componentName))
+			end
+
 			local computedProps = defaults or {}
 			for key, value in next, props do
 				if

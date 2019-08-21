@@ -1,0 +1,24 @@
+{
+	"name": "example",
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"Roact": {
+				"$path": "../../node_modules/@rbxts/roact/roact/src"
+			},
+			"RoactDnD": {
+				"$path": "../../src"
+			}
+		},
+		"StarterPlayer": {
+			"$className": "StarterPlayer",
+			"StarterPlayerScripts": {
+				"$className": "StarterPlayerScripts",
+				"RoactDnDExample1": {
+					"$path": "."
+				}
+			}
+		}
+	}
+}

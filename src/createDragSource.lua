@@ -3,7 +3,7 @@ return function(Roact)
 	local storeKey = require(script.Parent.storeKey)
 	local join = require(script.Parent.join)
 	local elementKind = require(script.Parent.elementKind)
-	local pointsIntersect = require(script.Parent.guiUtility).pointsIntersect
+	local utility = require(script.Parent.utility)
 
 	local function createDragSource(innerComponent, defaults)
 		local componentName = ("DragSource(%s)"):format(tostring(innerComponent))
@@ -132,9 +132,15 @@ return function(Roact)
 												local targetGuiSize = targetGui.AbsoluteSize
 												local sourceGuiSize = gui.AbsoluteSize
 
-												if (pointsIntersect(sourceGuiPos, sourceGuiPos + sourceGuiSize, targetGuiPos, targetGuiPos + targetGuiSize)) then
+												if
+													(utility.pointsIntersect(
+														sourceGuiPos,
+														sourceGuiPos + sourceGuiSize,
+														targetGuiPos,
+														targetGuiPos + targetGuiSize
+													))
+												 then
 													target.OnDrop(self.props.TargetData, gui)
-													source.target = target.Target
 													break
 												end
 											end

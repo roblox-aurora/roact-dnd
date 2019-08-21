@@ -1,3 +1,5 @@
+local HttpService = game:GetService("HttpService")
+
 local DragDropContext = {}
 DragDropContext.__index = DragDropContext
 
@@ -16,7 +18,7 @@ function DragDropContext:AddSource(binding, dropId, data)
 	assert(type(dropId) == "string" or type(dropId) == "number")
 	assert(data ~= nil)
 
-	self._dragSources[binding] = {dropId = dropId, data = data, target = {}}
+	self._dragSources[binding] = {dropId = dropId, data = data, target = {}, Id = HttpService:GenerateGUID(false)}
 end
 
 function DragDropContext:AddTarget(binding, props)
@@ -30,9 +32,21 @@ function DragDropContext:AddTarget(binding, props)
 	assert(type(priority) == "number")
 
 	if type(dropIds) == "table" then
-		self._dropTargets[binding] = {dropIds = dropIds, onDrop = onDrop, priority = priority, canDrop = canDrop}
+		self._dropTargets[binding] = {
+			dropIds = dropIds,
+			onDrop = onDrop,
+			priority = priority,
+			canDrop = canDrop,
+			Id = HttpService:GenerateGUID(false)
+		}
 	else
-		self._dropTargets[binding] = {dropIds = {dropIds}, onDrop = onDrop, priority = priority, canDrop = canDrop}
+		self._dropTargets[binding] = {
+			dropIds = {dropIds},
+			onDrop = onDrop,
+			priority = priority,
+			canDrop = canDrop,
+			Id = HttpService:GenerateGUID(false)
+		}
 	end
 end
 
@@ -65,18 +79,19 @@ end
 function DragDropContext:GetTargetsByDropId(dropId)
 	local targets = {}
 
-	-- table.sort(
-	-- 	self._dropTargets,
-	-- 	function(a, b)
-	-- 		return a.priority > b.priority
-	-- 	end
-	-- )
-
 	for binding, target in next, self._dropTargets do
 		if contains(target.dropIds, dropId) then
-			table.insert(targets, {Binding = binding, Target = target, OnDrop = target.onDrop})
+			table.insert(targets, {Binding = binding, Target = target, OnDrop = target.onDrop, Priority = target.priority})
 		end
 	end
+
+	table.sort(
+		targets,
+		function(a, b)
+			return a.Priority > b.Priority
+		end
+	)
+
 	return targets
 end
 

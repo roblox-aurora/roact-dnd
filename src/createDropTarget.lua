@@ -7,7 +7,7 @@ return function(Roact)
 
 	local function createDropTarget(innerComponent, defaults)
 		local componentName = ("DropTarget(%s)"):format(tostring(innerComponent))
-		local Connection = Roact.Component:extend(componentName)
+		local Connection = Roact.PureComponent:extend(componentName)
 
 		function Connection:computeProps()
 			local computedProps = defaults or {}
@@ -43,20 +43,6 @@ return function(Roact)
 			local binding, bindingUpdate = Roact.createBinding(nil)
 			self._bindingUpdate = bindingUpdate
 			self._binding = binding
-		end
-
-		function Connection:shouldUpdate(nextProps, nextState)
-			if not equal(nextState.computedProps, self:computeProps()) then
-				return true
-			end
-
-			return false
-		end
-
-		function Connection:didUpdate(prevProps)
-			if not equal(prevProps, self.props) then -- causes stackOverflow with updates.
-				self:setState({computedProps = self:computeProps()})
-			end
 		end
 
 		function Connection:willUnmount()

@@ -34,26 +34,36 @@ return function(Roact)
 			self.state = {
 				computedProps = computedProps
 			}
+
+			local binding, bindingUpdate = Roact.createBinding(nil)
+			self._bindingUpdate = bindingUpdate
+			self._binding = binding
 		end
 
 		function Connection:willUnmount()
 			if (self._rbx) then
 				local context = self._context[storeKey]
-				context:RemoveTarget(self._rbx)
+				context:RemoveTarget(self._binding)
+
+				self._bindingUpdate(nil)
+				self._binding = nil
+				self._bindinUpdate = nil
 			end
+		end
+
+		function Connection:didMount()
+			local context = self._context[storeKey]
+			context:AddTarget(self._binding, self.props)
 		end
 
 		function Connection:render()
 			if (elementKind(innerComponent) == "host") then
 				local ref = self.props[Roact.Ref]
 				local function refFn(rbx)
-					self._rbx = rbx
-
-					local context = self._context[storeKey]
-					context:AddTarget(rbx, self.props)
+					self._bindingUpdate(rbx)
 
 					if ref then
-						if typeof(ref) == "function" then
+						if type(ref) == "function" then
 							ref(rbx)
 						else
 							warn("Cannot use Roact.Ref with DragSource")

@@ -38,6 +38,10 @@ return function(Roact)
 			self.state = {
 				computedProps = computedProps
 			}
+
+			local binding, updateBinding = Roact.createBinding(nil)
+			self._binding = binding
+			self._bindingUpdate = updateBinding
 		end
 
 		function Connection:didMount()
@@ -51,7 +55,9 @@ return function(Roact)
 			local dragBegin = props.DragBegin
 			local dragEnd = props.DragEnd
 
-			local gui = self._rbx
+			local gui = self._binding:getValue()
+			dropContext:AddSource(self._binding, self.props.DropId, self.props.TargetData)
+
 			if (gui) then
 				local dragging
 				local dragInput
@@ -103,6 +109,7 @@ return function(Roact)
 							dragStart = input.Position
 							startPos = (dragGui or gui).Position
 							dropTargets = dropContext:GetTargetsByDropId(self.props.DropId) -- Prefetch drop targets here
+							local source = dropContext:GetSource(self._binding)
 							print("drag begin")
 
 							if type(dragBegin) == "function" then
@@ -118,15 +125,18 @@ return function(Roact)
 										-- TODO: Fire 'TargetDropped' prop of any DropTargets underneath
 
 										for _, target in next, dropTargets do
-											local targetGui = target.Instance
-											local targetGuiPos = targetGui.AbsolutePosition
-											local sourceGuiPos = gui.AbsolutePosition
-											local targetGuiSize = targetGui.AbsoluteSize
-											local sourceGuiSize = gui.AbsoluteSize
+											local targetGui = target.Binding:getValue()
+											if targetGui then
+												local targetGuiPos = targetGui.AbsolutePosition
+												local sourceGuiPos = gui.AbsolutePosition
+												local targetGuiSize = targetGui.AbsoluteSize
+												local sourceGuiSize = gui.AbsoluteSize
 
-											if (pointsIntersect(sourceGuiPos, sourceGuiPos + sourceGuiSize, targetGuiPos, targetGuiPos + targetGuiSize)) then
-												target.OnDrop(self.props.TargetData, gui)
-												break
+												if (pointsIntersect(sourceGuiPos, sourceGuiPos + sourceGuiSize, targetGuiPos, targetGuiPos + targetGuiSize)) then
+													target.OnDrop(self.props.TargetData, gui)
+													source.target = target.Target
+													break
+												end
 											end
 										end
 
@@ -173,7 +183,8 @@ return function(Roact)
 
 			if (self._rbx) then
 				local dropContext = self._context[storeKey]
-				dropContext:RemoveSource(self._rbx)
+				dropContext:RemoveSource(self._binding)
+				self._bindingUpdate(nil)
 			end
 		end
 
@@ -182,10 +193,7 @@ return function(Roact)
 				-- Intercept ref (in case it's user-set)
 				local ref = self.props[Roact.Ref]
 				local function refFn(rbx)
-					self._rbx = rbx
-
-					local dropContext = self._context[storeKey]
-					dropContext:AddSource(rbx, self.props.DropId, self.props.TargetData)
+					self._bindingUpdate(rbx)
 
 					if ref then
 						if typeof(ref) == "function" then

@@ -9,32 +9,38 @@ function DragDropContext.new()
 	return setmetatable(self, DragDropContext)
 end
 
-function DragDropContext:AddSource(src, dropId, data)
-	assert(typeof(src) == "Instance" and src:IsA("GuiObject"))
-	assert(typeof(dropId) == "string" or typeof(dropId) == "number")
+function DragDropContext:AddSource(binding, dropId, data)
+	local Type = DragDropContext.Type
+
+	assert(Type.of(binding) == Type.Binding, "Expected Binding")
+	assert(type(dropId) == "string" or type(dropId) == "number")
 	assert(data ~= nil)
 
-	self._dragSources[src] = {dropId = dropId, data = data}
+	self._dragSources[binding] = {dropId = dropId, data = data, target = {}}
 end
 
-function DragDropContext:AddTarget(src, props)
+function DragDropContext:AddTarget(binding, props)
+	local Type = DragDropContext.Type
+
 	local dropIds, onDrop, priority = props.DropId, props.TargetDropped, props.TargetPriority or 1
 	local canDrop = props.CanDrop
-	assert(typeof(src) == "Instance" and src:IsA("GuiObject"))
-	assert(typeof(dropIds) == "string" or typeof(dropIds) == "number")
-	assert(typeof(onDrop) == "function", ("OnDrop is of type %s, expected function"):format(typeof(onDrop)))
-	assert(typeof(priority) == "number")
+	assert(Type.of(binding) == Type.Binding, "Binding Expected")
+	assert(type(dropIds) == "string" or type(dropIds) == "number")
+	assert(type(onDrop) == "function", ("OnDrop is of type %s, expected function"):format(typeof(onDrop)))
+	assert(type(priority) == "number")
 
 	if type(dropIds) == "table" then
-		self._dropTargets[src] = {dropIds = dropIds, onDrop = onDrop, priority = priority, canDrop = canDrop}
+		self._dropTargets[binding] = {dropIds = dropIds, onDrop = onDrop, priority = priority, canDrop = canDrop}
 	else
-		self._dropTargets[src] = {dropIds = {dropIds}, onDrop = onDrop, priority = priority, canDrop = canDrop}
+		self._dropTargets[binding] = {dropIds = {dropIds}, onDrop = onDrop, priority = priority, canDrop = canDrop}
 	end
 end
 
-function DragDropContext:RemoveTarget(src)
-	assert(typeof(src) == "Instance")
-	self._dropTargets[src] = nil
+function DragDropContext:RemoveTarget(binding)
+	local Type = DragDropContext.Type
+
+	assert(Type.of(binding) == Type.Binding)
+	self._dropTargets[binding] = nil
 end
 
 function DragDropContext:RemoveSource(src)
@@ -52,6 +58,10 @@ local function contains(tbl, value)
 	return false
 end
 
+function DragDropContext:GetSource(binding)
+	return self._dragSources[binding], binding:getValue()
+end
+
 function DragDropContext:GetTargetsByDropId(dropId)
 	local targets = {}
 
@@ -62,9 +72,9 @@ function DragDropContext:GetTargetsByDropId(dropId)
 	-- 	end
 	-- )
 
-	for instance, target in next, self._dropTargets do
+	for binding, target in next, self._dropTargets do
 		if contains(target.dropIds, dropId) then
-			table.insert(targets, {Instance = instance, Target = target, OnDrop = target.onDrop})
+			table.insert(targets, {Binding = binding, Target = target, OnDrop = target.onDrop})
 		end
 	end
 	return targets

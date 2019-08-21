@@ -25,6 +25,9 @@ local function render()
 										dropFrame = rbx
 									end,
 									DropId = "Ex1",
+									CanDrop = function()
+										return true
+									end,
 									TargetDropped = function(data, gui)
 										print("Dropped on frame")
 										if dropFrame then

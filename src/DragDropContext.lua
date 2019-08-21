@@ -47,23 +47,13 @@ local function _addTarget(self, binding, props)
 	assert(type(onDrop) == "function", ("OnDrop is of type %s, expected function"):format(typeof(onDrop)))
 	assert(type(priority) == "number")
 
-	if type(dropIds) == "table" then
-		self[DropTargets][binding] = {
-			dropIds = dropIds,
-			onDrop = onDrop,
-			priority = priority,
-			canDrop = canDrop,
-			Id = HttpService:GenerateGUID(false)
-		}
-	else
-		self[DropTargets][binding] = {
-			dropIds = {dropIds},
-			onDrop = onDrop,
-			priority = priority,
-			canDrop = canDrop,
-			Id = HttpService:GenerateGUID(false)
-		}
-	end
+	self[DropTargets][binding] = {
+		dropIds = type(dropIds) == "table" and dropIds or {dropIds},
+		onDrop = onDrop,
+		priority = priority,
+		canDrop = canDrop,
+		Id = HttpService:GenerateGUID(false)
+	}
 end
 
 local function _removeTarget(self, binding)
@@ -140,10 +130,18 @@ function DragDropContext:dispatch(action)
 		assert(type(action.data) ~= "nil")
 		assert(Type.of(action.source) == Type.Binding)
 		assert(Type.of(action.target) == Type.Binding)
+		local source = assert(dragSources[action.source])
 		local target = assert(dropTargets[action.target])
 
-		-- Run callback TargetDropped on the user side
-		target.onDrop(action.data, action.source:getValue())
+		local canDrop = true
+		if type(target.canDrop) == "function" then
+			canDrop = target.canDrop()
+		end
+
+		if (canDrop) then
+			-- Run callback TargetDropped on the user side
+			target.onDrop(action.data, action.source:getValue())
+		end
 	elseif action.type == "DRAG/BEGIN" then
 		assert(Type.of(action.source) == Type.Binding)
 		local source = assert(dragSources[action.source])

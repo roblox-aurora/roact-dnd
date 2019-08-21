@@ -45,21 +45,27 @@ return function(Roact)
 			self._binding = binding
 		end
 
+		function Connection:shouldUpdate(nextProps, nextState)
+			if not equal(nextState.computedProps, self:computeProps()) then
+				return true
+			end
+
+			return false
+		end
+
 		function Connection:didUpdate(prevProps)
-			if not equal(prevProps, self.props) then
+			if not equal(prevProps, self.props) then -- causes stackOverflow with updates.
 				self:setState({computedProps = self:computeProps()})
 			end
 		end
 
 		function Connection:willUnmount()
-			if (self._rbx) then
-				local context = self._context[storeKey]
-				context:dispatch({type = "REGISTRY/REMOVE_TARGET", target = self._binding})
+			local context = self._context[storeKey]
+			context:dispatch({type = "REGISTRY/REMOVE_TARGET", target = self._binding})
 
-				self._bindingUpdate(nil)
-				self._binding = nil
-				self._bindingUpdate = nil
-			end
+			self._bindingUpdate(nil)
+			self._binding = nil
+			self._bindingUpdate = nil
 		end
 
 		function Connection:didMount()
@@ -87,7 +93,8 @@ return function(Roact)
 					join(
 						self.state.computedProps,
 						{
-							[Roact.Ref] = refFn
+							[Roact.Ref] = refFn,
+							[Roact.Children] = self.props[Roact.Children]
 						}
 					)
 				)

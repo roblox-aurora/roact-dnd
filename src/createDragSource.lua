@@ -143,6 +143,12 @@ return function(Roact)
 							(input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and
 								canDrag(self.props.TargetData)
 						 then
+							local currentGui = self._binding:getValue()
+							if currentGui then
+								local absSize = currentGui.AbsoluteSize
+								self:setState({size = UDim2.new(0, absSize.X, 0, absSize.Y)})
+							end
+
 							local gui = self._modalRbx or gui
 
 							dropContext:dispatch({type = "DRAG/BEGIN", source = self._binding})
@@ -300,7 +306,8 @@ return function(Roact)
 															[Roact.Ref] = function(rbx)
 																self._modalRbx = rbx
 															end,
-															Position = self.state.position
+															Position = self.state.position,
+															Size = self.state.size
 														}
 													)
 												)

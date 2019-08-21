@@ -180,8 +180,7 @@ return function(Roact)
 								}
 							)
 
-							local event
-							event =
+							self._dragEvent =
 								input.Changed:Connect(
 								function()
 									if
@@ -235,7 +234,7 @@ return function(Roact)
 										end
 
 										dropContext:dispatch({type = "DRAG/END", source = self._binding, dropped = dropped})
-										event:Disconnect()
+										self._dragEvent:Disconnect()
 									end
 								end
 							)
@@ -275,15 +274,29 @@ return function(Roact)
 		end
 
 		function Connection:willUnmount()
-			if (self._globalInputChanged) then
-				self._globalInputChanged:Disconnect()
+			if self._inputBegan then
+				self._inputBegan:Disconnect()
+				self._inputBegan = nil
 			end
 
-			if (self._rbx) then
-				local context = self._context[storeKey]
-				context:dispatch({type = "REGISTRY/REMOVE_SOURCE", source = self._binding})
-				self._bindingUpdate(nil)
+			if self._inputChanged then
+				self._inputChanged:Disconnect()
+				self._inputChanged = nil
 			end
+
+			if self._globalInputChanged then
+				self._globalInputChanged:Disconnect()
+				self._globalInputChanged = nil
+			end
+
+			if self._dragEvent then
+				self._dragEvent:Disconnect()
+				self._dragEvent = nil
+			end
+
+			local context = self._context[storeKey]
+			context:dispatch({type = "REGISTRY/REMOVE_SOURCE", source = self._binding})
+			self._bindingUpdate(nil)
 		end
 
 		function Connection:render()

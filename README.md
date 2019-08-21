@@ -1,5 +1,9 @@
-Roact Drag & Drop (DND)
-=======================
+<div align="center">
+	<img src="https://assets.vorlias.com/i1/roact-dnd.png"/>
+</div>
+<div align="center">
+  <h1>Roact Drag and Drop (D&D)</h1>
+</div>
 
 Work-in-progress simple dragging & dropping functionality for Roact.
 

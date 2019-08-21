@@ -24,7 +24,7 @@ function TestDragDropComponent:render()
 						return true
 					end,
 					TargetDropped = function(data, gui)
-						print("Dropped on frame")
+						print("Dropped on frame with data", game:GetService("HttpService"):JSONEncode(data))
 						if self.dropFrame then
 							gui.Position = self.dropFrame.Position
 						end

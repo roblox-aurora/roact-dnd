@@ -122,9 +122,13 @@ return function(Roact)
 
 							dropContext:dispatch({type = "DRAG/BEGIN", source = self._binding})
 
-							input.Changed:Connect(
+							local event
+							event = input.Changed:Connect(
 								function()
-									if input.UserInputState == Enum.UserInputState.End then
+									if
+										input.UserInputState == Enum.UserInputState.End and
+											(input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch)
+									 then
 										-- On Drop
 										dragging = false
 
@@ -167,6 +171,7 @@ return function(Roact)
 										end
 
 										dropContext:dispatch({type = "DRAG/END", source = self._binding, dropped = dropped})
+										event:Disconnect()
 									end
 								end
 							)

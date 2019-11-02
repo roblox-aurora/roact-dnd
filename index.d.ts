@@ -76,7 +76,7 @@ interface IDragSource<T extends GuiObject> extends IDragDropHandler<DropId, T> {
 	/**
 	 * Called when the drag ends
 	 */
-	DragEnd?: () => void;
+	DragEnd?: (hasDropTarget?: boolean) => void;
 
 	/**
 	 * Will render the dragging as a modal (useful for having it on top of everything!)

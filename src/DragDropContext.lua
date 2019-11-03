@@ -15,6 +15,11 @@ function DragDropContext.new()
 	return setmetatable(self, DragDropContext)
 end
 
+function DragDropContext:constructor()
+	-- Prevent inheritance in roblox-ts
+	error("Cannot inherit type of DragDropContext", 2);
+end
+
 local function _addSource(self, binding, props)
 	local Type = DragDropContext.Type
 

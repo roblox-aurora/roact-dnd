@@ -48,7 +48,7 @@ local function _addTarget(self, binding, props)
 	local dropIds, onDrop, priority = props.DropId, props.TargetDropped, props.TargetPriority or 1
 	local canDrop = props.CanDrop
 	assert(Type.of(binding) == Type.Binding, "Binding Expected")
-	assert(type(dropIds) == "string" or type(dropIds) == "number")
+	assert(type(dropIds) == "string" or type(dropIds) == "number" or type(dropIds) == "table")
 	assert(type(onDrop) == "function", ("OnDrop is of type %s, expected function"):format(typeof(onDrop)))
 	assert(type(priority) == "number")
 

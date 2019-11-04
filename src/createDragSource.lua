@@ -47,6 +47,7 @@ return function(Roact)
 			local binding, updateBinding = Roact.createBinding(nil)
 			self._binding = binding
 			self._bindingUpdate = updateBinding
+			self._id = game:GetService("HttpService"):GenerateGUID(false)
 		end
 
 		function Connection:didUpdate(prevProps)
@@ -98,6 +99,12 @@ return function(Roact)
 					local screen = snapBehaviour == "ViewportIgnoreInset" and view or view - ul + br
 
 					local delta = input.Position - self.state.dragStart
+					
+					-- Ensure that a mouse click doesn't count as a drag
+					if delta.Magnitude >= 5 and not self.state.reachedDragThreshold then
+						self:setState({reachedDragThreshold = true, dragging = true})
+						dropContext:dispatch({type = "DRAG/BEGIN", source = self._binding})
+					end
 
 					if snapBehaviour ~= "None" then
 						local scaleOffsetX = screen.X * startPos.X.Scale
@@ -117,16 +124,12 @@ return function(Roact)
 							resultingOffsetY = -scaleOffsetY
 						end
 
-						-- targetGui.Position =
 						self:setState(
 							{
 								position = UDim2.new(startPos.X.Scale, resultingOffsetX, startPos.Y.Scale, resultingOffsetY)
 							}
 						)
 					else
-						-- targetGui.Position =
-						-- 	UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-
 						self:setState(
 							{
 								position = UDim2.new(
@@ -155,11 +158,9 @@ return function(Roact)
 
 							local gui = self._modalRbx or gui
 
-							dropContext:dispatch({type = "DRAG/BEGIN", source = self._binding})
-
 							self:setState(
 								{
-									dragging = true,
+									mouseDown = true,
 									dragStart = input.Position,
 									position = self.props.IsDragModal and UDim2.new(0, gui.AbsolutePosition.X, 0, gui.AbsolutePosition.Y),
 									startPos = self.props.IsDragModal and UDim2.new(0, gui.AbsolutePosition.X, 0, gui.AbsolutePosition.Y) or
@@ -176,52 +177,57 @@ return function(Roact)
 											(input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch)
 									 then
 										gui = self._modalRbx or gui
-
-										-- On Drop
-										local dropped = false
-										for _, target in next, self.state.dropTargets do
-											local targetGui = target.Binding:getValue()
-											if targetGui then
-												local targetGuiPos = targetGui.AbsolutePosition
-												local sourceGuiPos = gui.AbsolutePosition
-												local targetGuiSize = targetGui.AbsoluteSize
-												local sourceGuiSize = gui.AbsoluteSize
-
-												if
-													(utility.pointsIntersect(
-														sourceGuiPos,
-														sourceGuiPos + sourceGuiSize,
-														targetGuiPos,
-														targetGuiPos + targetGuiSize
-													))
-												 then
-													-- target.OnDrop(self.props.TargetData, gui)
-													dropContext:dispatch(
-														{
-															type = "DROP/TARGET",
-															data = self.props.TargetData,
-															dropId = self.props.DropId,
-															source = self._binding,
-															target = target.Binding
-														}
-													)
-													dropped = true
-													break
+										
+										if self.state.reachedDragThreshold then
+											-- On Drop
+											local dropped = false
+											for _, target in next, self.state.dropTargets do
+												local targetGui = target.Binding:getValue()
+												if targetGui then
+													local targetGuiPos = targetGui.AbsolutePosition
+													local sourceGuiPos = gui.AbsolutePosition
+													local targetGuiSize = targetGui.AbsoluteSize
+													local sourceGuiSize = gui.AbsoluteSize
+	
+													if
+														(utility.pointsIntersect(
+															sourceGuiPos,
+															sourceGuiPos + sourceGuiSize,
+															targetGuiPos,
+															targetGuiPos + targetGuiSize
+														))
+													 then
+														-- target.OnDrop(self.props.TargetData, gui)
+														dropContext:dispatch(
+															{
+																type = "DROP/TARGET",
+																data = self.props.TargetData,
+																dropId = self.props.DropId,
+																source = self._binding,
+																target = target.Binding
+															}
+														)
+														dropped = true
+														break
+													end
 												end
 											end
-										end
-
-										if (dropResetsPosition) then
-											self:setState({position = Roact.None, dragging = false})
-										else
-											self:setState({dragging = false})
-											local currentGui = self._binding:getValue()
-											if currentGui then
-												currentGui.Position = self.state.position
+	
+											if (dropResetsPosition) then
+												self:setState({position = Roact.None, dragging = false, mouseDown = false, reachedDragThreshold = false})
+											else
+												self:setState({dragging = false, mouseDown = false, reachedDragThreshold = false})
+												local currentGui = self._binding:getValue()
+												if currentGui then
+													currentGui.Position = self.state.position
+												end
 											end
-										end
+	
+											dropContext:dispatch({type = "DRAG/END", source = self._binding, dropped = dropped})
+										else
+											self:setState({mouseDown = false})
+										end 
 
-										dropContext:dispatch({type = "DRAG/END", source = self._binding, dropped = dropped})
 										self._dragEvent:Disconnect()
 									end
 								end
@@ -242,7 +248,7 @@ return function(Roact)
 				self._globalInputChanged =
 					UserInputService.InputChanged:Connect(
 					function(input)
-						if input == dragInput and self.state.dragging then
+						if input == dragInput and self.state.mouseDown then
 							update(input, self._modalRbx or gui)
 						end
 					end
@@ -333,7 +339,7 @@ return function(Roact)
 										)
 									}
 								),
-							TargetCom = Roact.createElement(
+							[self._id] = Roact.createElement(
 								innerComponent,
 								join(
 									self.state.computedProps,

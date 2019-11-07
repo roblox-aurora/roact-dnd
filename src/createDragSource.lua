@@ -4,7 +4,7 @@ return function(Roact)
 	local join = require(script.Parent.join)
 	local elementKind = require(script.Parent.elementKind)
 	local utility = require(script.Parent.utility)
-	local equal = utility.deepEqual
+	local equal = utility.equal
 	local copy = require(script.Parent.copy)
 
 	local function createDragSource(innerComponent, defaults)
@@ -238,6 +238,7 @@ return function(Roact)
 												dropContext:dispatch({type = "DRAG/END", source = self._binding, dropped = dropped})
 												self._dragEvent:Disconnect()
 											end
+											reachedDraggingThreshold = false
 										else
 											mouseDown = false
 										end

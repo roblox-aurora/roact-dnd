@@ -108,6 +108,7 @@ function DragDropContext:GetTargetsByDropId(dropId)
 end
 
 function DragDropContext:dispatch(action)
+	print("DragDropContext::dispatch", action.type)
 	local Type = DragDropContext.Type
 
 	-- Thunk-like dispatch

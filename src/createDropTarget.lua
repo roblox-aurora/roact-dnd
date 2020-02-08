@@ -2,8 +2,6 @@ return function(Roact)
 	local storeKey = require(script.Parent.storeKey)
 	local elementKind = require(script.Parent.elementKind)
 	local join = require(script.Parent.join)
-	local utility = require(script.Parent.utility)
-	local equal = utility.equal
 
 	local function createDropTarget(innerComponent, defaults)
 		local componentName = ("DropTarget(%s)"):format(tostring(innerComponent))
@@ -58,7 +56,7 @@ return function(Roact)
 		end
 
 		function Connection:render()
-			if (elementKind(innerComponent) == "host") then
+			if elementKind(innerComponent) == "host" then
 				local ref = self.props[Roact.Ref]
 				local function refFn(rbx)
 					self._bindingUpdate(rbx)

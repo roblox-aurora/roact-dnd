@@ -15,7 +15,7 @@ function DragDropContext.new()
 	return setmetatable(self, DragDropContext)
 end
 
-function DragDropContext:constructor()
+function DragDropContext.constructor()
 	-- Prevent inheritance in roblox-ts
 	error("Cannot inherit type of DragDropContext", 2);
 end
@@ -136,7 +136,7 @@ function DragDropContext:dispatch(action)
 		assert(type(action.data) ~= "nil")
 		assert(Type.of(action.source) == Type.Binding)
 		assert(Type.of(action.target) == Type.Binding)
-		local source = assert(dragSources[action.source])
+		-- local source = assert(dragSources[action.source])
 		local target = assert(dropTargets[action.target])
 
 		local canDrop = true
@@ -144,7 +144,7 @@ function DragDropContext:dispatch(action)
 			canDrop = target.canDrop()
 		end
 
-		if (canDrop) then
+		if canDrop then
 			local gui = action.source:getValue()
 			-- Run callback TargetDropped on the user side
 			target.onDrop(action.data, gui)

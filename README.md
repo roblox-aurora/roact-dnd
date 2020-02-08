@@ -14,7 +14,3 @@ Plan
 * [x] Start off with `DragFrame` and `DropFrame` - being a wrapper around `Frame` with the extra props and functionalities of this module.
 * [x] Eventually custom logic, e.g. `CanDrop` for `DropTarget`, `CanDrag` for `DragSource`
 * [ ] Eventually possibly could expand to custom components
-
-Why
-================
-I need this sort of functionality for a game I'm working on.

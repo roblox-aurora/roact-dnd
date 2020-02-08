@@ -4,13 +4,15 @@
   "description": "",
   "main": "src/ts.lua",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "selene src/"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@rbxts/roact": "^1.1.0",
     "@rbxts/types": "^1.0.243"
+  },
+  "dependencies": {
+    "@rbxts/roact": "^1.1.6"
   }
 }

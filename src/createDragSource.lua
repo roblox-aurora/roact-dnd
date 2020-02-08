@@ -15,11 +15,11 @@ return function(Roact)
 			local computedProps = copy(defaults) or {}
 			for key, value in next, self.props do
 				if
-					(key ~= "DropId" and key ~= "TargetData" and key ~= "DragConstraint" and key ~= "DropResetsPosition" and
+					key ~= "DropId" and key ~= "TargetData" and key ~= "DragConstraint" and key ~= "DropResetsPosition" and
 						key ~= "CanDrag" and
 						key ~= "DragBegin" and
 						key ~= "DragEnd" and
-						key ~= "IsDragModal")
+						key ~= "IsDragModal"
 				 then
 					computedProps[key] = value
 				end
@@ -60,7 +60,7 @@ return function(Roact)
 			end
 		end
 
-		function Connection:setDraggable(gui)
+		function Connection:setDraggable(dragGui)
 			local props = self.props
 			local snapBehaviour = props.DragConstraint or "None"
 			local canDrag = props.CanDrag or function()
@@ -92,7 +92,7 @@ return function(Roact)
 			local mouseDown = false
 			local reachedDraggingThreshold = false
 
-			if (gui) then
+			if dragGui then
 				local dragInput
 
 				local function update(input, targetGui)
@@ -152,7 +152,7 @@ return function(Roact)
 				end
 
 				self._inputBegan =
-					gui.InputBegan:Connect(
+				dragGui.InputBegan:Connect(
 					function(input)
 						if
 							(input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and
@@ -164,7 +164,7 @@ return function(Roact)
 								self:setState({size = UDim2.new(0, absSize.X, 0, absSize.Y)})
 							end
 
-							local gui = self._modalRbx or gui
+							local gui = self._modalRbx or dragGui
 
 							mouseDown = true
 							self:setState(
@@ -199,12 +199,12 @@ return function(Roact)
 													local sourceGuiSize = gui.AbsoluteSize
 
 													if
-														(utility.pointsIntersect(
+														utility.pointsIntersect(
 															sourceGuiPos,
 															sourceGuiPos + sourceGuiSize,
 															targetGuiPos,
 															targetGuiPos + targetGuiSize
-														))
+														)
 													 then
 														-- target.OnDrop(self.props.TargetData, gui)
 														dropContext:dispatch(
@@ -223,14 +223,14 @@ return function(Roact)
 											end
 
 											if self._alive then
-												if (dropResetsPosition) then
+												if dropResetsPosition then
 													self:setState({position = Roact.None, dragging = false})
 													mouseDown = false
 												else
 													self:setState({dragging = false})
-													local currentGui = self._binding:getValue()
-													if currentGui then
-														currentGui.Position = self.state.position
+													local bindingGui = self._binding:getValue()
+													if bindingGui then
+														bindingGui.Position = self.state.position
 													end
 													mouseDown = false
 												end
@@ -250,7 +250,7 @@ return function(Roact)
 				)
 
 				self._inputChanged =
-					gui.InputChanged:Connect(
+					dragGui.InputChanged:Connect(
 					function(input)
 						if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 							dragInput = input
@@ -262,7 +262,7 @@ return function(Roact)
 					UserInputService.InputChanged:Connect(
 					function(input)
 						if input == dragInput and mouseDown then
-							update(input, self._modalRbx or gui)
+							update(input, self._modalRbx or dragGui)
 						end
 					end
 				)
@@ -308,7 +308,7 @@ return function(Roact)
 		end
 
 		function Connection:render()
-			if (elementKind(innerComponent) == "host") then
+			if elementKind(innerComponent) == "host" then
 				-- Intercept ref (in case it's user-set)
 				local ref = self.props[Roact.Ref]
 				local function refFn(rbx)

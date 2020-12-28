@@ -26,7 +26,7 @@ type DropId = string | number | symbol;
 
 interface IDragDropHandler<DropIdTypes, T extends Instance> {
 	DropId: DropIdTypes;
-	Ref?: (rbx: T) => void;
+	Ref?: (rbx: T | undefined) => void;
 }
 
 interface IDropTarget<T extends GuiObject>

@@ -105,6 +105,10 @@ return function(Roact)
 
 					local delta = input.Position - self.state.dragStart
 
+					if mouseDown and self.state.dragging then
+						dropContext:dispatch({type = "DRAG/DRAGGING", source = self.binding})
+					end
+
 					if mouseDown and delta.Magnitude >= 5 and not self.state.dragging then
 						self:setState({dragging = true})
 						dropContext:dispatch({type = "DRAG/BEGIN", source = self._binding})

@@ -16,7 +16,7 @@
 			"StarterPlayerScripts": {
 				"$className": "StarterPlayerScripts",
 				"RoactDnDExample2": {
-					"$path": "."
+					"$path": "./src"
 				}
 			}
 		}

@@ -1,11 +1,10 @@
-local RoactPath = script.Parent.Roact;
-local Roact = require(RoactPath)
+local importRoact = require(script.importRoact)
 local parent = script
-local createDragSource = require(parent.createDragSource)(Roact)
-local createDropTarget = require(parent.createDropTarget)(Roact)
-local DragDropProvider = require(parent.DragDropProvider)(Roact)
+local createDragSource = require(parent.createDragSource)
+local createDropTarget = require(parent.createDropTarget)
+local DragDropProvider = require(parent.DragDropProvider)
 local DragDropContext = require(parent.DragDropContext)
-DragDropContext.Type = require(RoactPath.Type)
+DragDropContext.Type = importRoact("Type")
 
 return {
 	DragFrame = createDragSource("Frame", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0)}),

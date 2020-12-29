@@ -2,7 +2,7 @@
   "name": "@rbxts/roact-dnd",
   "version": "0.0.6",
   "description": "",
-  "main": "src/ts.lua",
+  "main": "src/init.lua",
   "scripts": {
     "lint": "selene src/"
   },

@@ -143,9 +143,9 @@ return function(Roact)
 							{
 								position = UDim2.new(
 									startPos.X.Scale,
-									startPos.X.Offset + delta.X,
+									startPos.X.Offset + delta.X + targetGui.AbsoluteSize.X * targetGui.AnchorPoint.X,
 									startPos.Y.Scale,
-									startPos.Y.Offset + delta.Y
+									startPos.Y.Offset + delta.Y + targetGui.AbsoluteSize.Y * targetGui.AnchorPoint.Y
 								)
 							}
 						)

@@ -99,7 +99,8 @@ return function(Roact)
 					assert(targetGui and typeof(targetGui) == "Instance" and targetGui:IsA("GuiObject"))
 					local ul, br = game:GetService("GuiService"):GetGuiInset()
 					local view = workspace.CurrentCamera.ViewportSize
-					local startPos = self.state.startPos
+					local startPos = self.state.startPos - UDim2.fromOffset(targetGui.AbsoluteSize.X * targetGui.AnchorPoint.X, targetGui.AbsoluteSize.Y * targetGui.AnchorPoint.Y)
+
 					local screen = snapBehaviour == "ViewportIgnoreInset" and view or view - ul + br
 
 					local delta = input.Position - self.state.dragStart
@@ -131,7 +132,7 @@ return function(Roact)
 						-- targetGui.Position =
 						self:setState(
 							{
-								position = UDim2.new(startPos.X.Scale, resultingOffsetX, startPos.Y.Scale, resultingOffsetY)
+								position = UDim2.new(startPos.X.Scale, resultingOffsetX + targetGui.AbsoluteSize.X * targetGui.AnchorPoint.X, startPos.Y.Scale, resultingOffsetY  + targetGui.AbsoluteSize.Y * targetGui.AnchorPoint.Y)
 							}
 						)
 					else
@@ -142,9 +143,9 @@ return function(Roact)
 							{
 								position = UDim2.new(
 									startPos.X.Scale,
-									startPos.X.Offset + delta.X,
+									startPos.X.Offset + delta.X + targetGui.AbsoluteSize.X * targetGui.AnchorPoint.X,
 									startPos.Y.Scale,
-									startPos.Y.Offset + delta.Y
+									startPos.Y.Offset + delta.Y + targetGui.AbsoluteSize.Y * targetGui.AnchorPoint.Y
 								)
 							}
 						)

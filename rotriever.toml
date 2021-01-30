@@ -1,0 +1,9 @@
+[package]
+name = "vorlias/roact-dnd"
+author = "Vorlias"
+license = "MIT"
+content_root = "src"
+version = "0.2.0"
+
+[dependencies]
+Snapdragon = "github.com/roblox-aurora/rbx-snapdragon"

@@ -52,14 +52,13 @@ function TestDragDropComponent:render()
 							Position = self.state.position,
 							BackgroundColor3 = self.state.dragging and Color3.fromRGB(255, 0, 255) or Color3.fromRGB(0, 0, 0),
 							DragConstraint = "Viewport",
-							IsDragModal = true,
+							DropResetsPosition = false,
 							DragBegin = function()
 								self:setState({dragging = true})
 							end,
 							DragEnd = function()
 								self:setState({dragging = false})
 							end
-							-- DropResetsPosition = true,
 						},
 						{
 							e(

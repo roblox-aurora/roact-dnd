@@ -23,7 +23,7 @@ local function createDropTarget(innerComponent, defaults)
 	end
 
 	function Connection:init(props)
-		local dropContext = self._context[storeKey]
+		local dropContext = self:__getContext(storeKey)
 		if not dropContext then
 			error("A top-level DragDropProvider was not provided in the heirachy.")
 		end
@@ -46,14 +46,14 @@ local function createDropTarget(innerComponent, defaults)
 	end
 
 	function Connection:willUnmount()
-		local context = self._context[storeKey]
+		local context = self:__getContext(storeKey)
 		context:dispatch({type = "REGISTRY/REMOVE_TARGET", target = self._binding})
 
 		self._bindingUpdate(nil)
 	end
 
 	function Connection:didMount()
-		local context = self._context[storeKey]
+		local context = self:__getContext(storeKey)
 		context:dispatch({type = "REGISTRY/ADD_TARGET", target = self._binding, props = self.props})
 	end
 

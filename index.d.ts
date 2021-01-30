@@ -80,8 +80,17 @@ interface IDragSource<T extends GuiObject> extends IDragDropHandler<DropId, T> {
 
 	/**
 	 * Will render the dragging as a modal (useful for having it on top of everything!)
+	 * @deprecated
 	 */
 	IsDragModal?: boolean;
+
+	/**
+	 * Changes the dragging behaviour of the drag source.
+	 * 
+	 * - Snapdragon - Uses `Snapdragon`, which is modal-only
+	 * - Legacy - Will use the legacy drag controller, which also uses `IsDragModal`
+	 */
+	DragController?: "Legacy" | "Snapdragon";
 
 	/**
 	 * How the dragging is constrained

@@ -1,5 +1,6 @@
 {
 	"name": "example",
+	"servePort": 34567,
 	"tree": {
 		"$className": "DataModel",
 		"ReplicatedStorage": {
@@ -9,6 +10,9 @@
 			},
 			"RoactDnD": {
 				"$path": "../../src"
+			},
+			"Snapdragon": {
+				"$path": "../../_index/snapdragon/snapdragon"
 			}
 		},
 		"StarterPlayer": {

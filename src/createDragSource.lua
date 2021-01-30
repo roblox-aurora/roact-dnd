@@ -1,6 +1,8 @@
 local UserInputService = game:GetService("UserInputService")
 local importRoact = require(script.Parent.importRoact)
 local Roact = importRoact()
+local Snapdragon = require(script.Parent.Parent.Snapdragon)
+local createDragController = Snapdragon.createDragController
 
 local storeKey = require(script.Parent.storeKey)
 local join = require(script.Parent.join)
@@ -13,6 +15,11 @@ local function createDragSource(innerComponent, defaults)
 	local componentName = ("DragSource(%s)"):format(tostring(innerComponent))
 	local Connection = Roact.Component:extend(componentName)
 
+	Connection.defaultProps = {
+		DragController = "Legacy",
+		IsDragModal = true,
+	}
+
 	function Connection:computeProps()
 		local computedProps = copy(defaults) or {}
 		for key, value in next, self.props do
@@ -21,7 +28,7 @@ local function createDragSource(innerComponent, defaults)
 					key ~= "CanDrag" and
 					key ~= "DragBegin" and
 					key ~= "DragEnd" and
-					key ~= "IsDragModal"
+					key ~= "IsDragModal" and key ~= "DragController"
 				then
 				computedProps[key] = value
 			end
@@ -30,7 +37,7 @@ local function createDragSource(innerComponent, defaults)
 	end
 
 	function Connection:init(props)
-		local dropContext = self._context[storeKey]
+		local dropContext = self:__getContext(storeKey)
 		if not dropContext then
 			error("A top-level DragDropProvider was not provided in the heirachy.")
 		end
@@ -62,7 +69,129 @@ local function createDragSource(innerComponent, defaults)
 		end
 	end
 
-	function Connection:setDraggable(dragGui)
+	function Connection:setSnapdragonDraggable(dragGui)
+		local gui = self._modalRbx or dragGui
+
+		local props = self.props
+		local snapBehaviour = props.DragConstraint or "None"
+		local canDrag = props.CanDrag or function()
+			return true
+		end
+
+		local dropResetsPosition = props.DropResetsPosition
+		if dropResetsPosition == nil then
+			dropResetsPosition = true
+		end
+
+		local dropContext = self:__getContext(storeKey)
+
+		if self.dragController then
+			warn("[roact-dnd] Overwriting existing drag controller")
+			self.dragController:Destroy()
+		end
+
+		local dragController = createDragController(dragGui, {
+			DragGui = gui,
+			CanDrag = function()
+				return canDrag(self.props.TargetData)
+			end,
+			-- Debugging = true,
+			-- DragPositionMode = "Offset",
+			DragEndedResetsPosition = dropResetsPosition,
+			DragRelativeTo = "LayerCollector",
+			SnapEnabled = snapBehaviour ~= "None",
+			DragThreshold = 5,
+		})
+
+		self.dragController = dragController
+
+		local offsetPosition
+		dragController.DragBegan:Connect(function(began)
+			local state = {
+				dragging = true,
+				dragStart = began.InputPosition,
+				startPos = began.GuiPosition,
+				dropTargets = dropContext:GetTargetsByDropId(self.props.DropId)
+			}
+
+
+			local absolute = began.AbsolutePosition
+			offsetPosition = UDim2.new(0, absolute.X, 0, absolute.Y)
+			state.position = offsetPosition
+			-- Perform some cool hacks :)
+			dragController:SetSnapMargin({
+				Vertical = Vector2.new(-absolute.X, 0),
+				Horizontal = Vector2.new(-absolute.Y, 0),
+			})
+
+			self:setState(state);
+			dropContext:dispatch({type = "DRAG/BEGIN", source = self._binding})
+		end)
+
+		dragController.DragChanged:Connect(function(e)
+			self:setState(
+				{
+					position = offsetPosition and e.GuiPosition + offsetPosition or e.GuiPosition
+				}
+			)
+		end)
+
+		dragController.DragEnded:Connect(function(ended)
+			gui = self._modalRbx or gui
+
+			local dropped = false
+			for _, target in next, self.state.dropTargets do
+				local targetGui = target.Binding:getValue()
+				if targetGui then
+					print(targetGui:GetFullName(), gui:GetFullName(), ended.DraggedGui:GetFullName())
+					local targetGuiPos = targetGui.AbsolutePosition
+					local sourceGuiPos = gui.AbsolutePosition
+					local targetGuiSize = targetGui.AbsoluteSize
+					local sourceGuiSize = gui.AbsoluteSize
+
+					if
+						utility.pointsIntersect(
+							sourceGuiPos,
+							sourceGuiPos + sourceGuiSize,
+							targetGuiPos,
+							targetGuiPos + targetGuiSize
+						)
+						then
+						-- target.OnDrop(self.props.TargetData, gui)
+						dropContext:dispatch(
+							{
+								type = "DROP/TARGET",
+								data = self.props.TargetData,
+								dropId = self.props.DropId,
+								source = self._binding,
+								target = target.Binding
+							}
+						)
+						dropped = true
+						break
+					end
+				end
+			end
+
+			if self._alive then
+				dropContext:dispatch({type = "DRAG/END", source = self._binding, dropped = dropped})
+
+				if dropResetsPosition then
+					self:setState({position = Roact.None, dragging = false})
+				else
+					self:setState({dragging = false})
+					local bindingGui = self._binding:getValue()
+					if bindingGui then
+						bindingGui.Position = self.state.position
+					end
+				end
+			end
+		end)
+
+		dragController:Connect()
+	end
+
+	function Connection:setLegacyDraggable(dragGui)
 		local props = self.props
 		local snapBehaviour = props.DragConstraint or "None"
 		local canDrag = props.CanDrag or function()
@@ -74,7 +203,7 @@ local function createDragSource(innerComponent, defaults)
 			dropResetsPosition = true
 		end
 
-		local dropContext = self._context[storeKey]
+		local dropContext = self:__getContext(storeKey)
 
 		if self._inputBegan then
 			self._inputBegan:Disconnect()
@@ -275,15 +404,25 @@ local function createDragSource(innerComponent, defaults)
 	end
 
 	function Connection:didMount()
-		local dropContext = self._context[storeKey]
+		local dropContext = self:__getContext(storeKey)
 
 		local gui = self._binding:getValue()
 		dropContext:dispatch({type = "REGISTRY/ADD_SOURCE", source = self._binding, props = self.props})
-		self:setDraggable(gui)
+
+		if self.props.DragController == "Snapdragon" then
+			self:setSnapdragonDraggable(gui)
+		else
+			warn("[roact-dnd] Using legacy drag controller")
+			self:setLegacyDraggable(gui)
+		end
 	end
 
 	function Connection:willUnmount()
 		self._alive = false
+
+		if self.dragController then
+			self.dragController:Destroy()
+		end
 
 		if self._inputBegan then
 			self._inputBegan:Disconnect()
@@ -329,7 +468,7 @@ local function createDragSource(innerComponent, defaults)
 			if self.props.IsDragModal then
 				return Roact.createFragment(
 					{
-						Modal = self.state.dragging and
+						ModalRender = self.state.dragging and
 							Roact.createElement(
 								Roact.Portal,
 								{
@@ -357,7 +496,7 @@ local function createDragSource(innerComponent, defaults)
 									)
 								}
 							),
-						TargetCom = Roact.createElement(
+						Model = Roact.createElement(
 							innerComponent,
 							join(
 								self.state.computedProps,

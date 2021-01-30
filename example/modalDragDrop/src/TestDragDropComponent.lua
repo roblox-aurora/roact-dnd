@@ -47,12 +47,14 @@ function TestDragDropComponent:render()
 						{
 							DropId = "Ex2",
 							TargetData = "Hello, World!",
+							IsDragModal = true,
+							DragController = "Snapdragon",
 							BackgroundTransparency = 0.5,
 							Size = UDim2.new(0, 100, 0, 100),
 							Position = self.state.position,
 							BackgroundColor3 = self.state.dragging and Color3.fromRGB(255, 0, 255) or Color3.fromRGB(0, 0, 0),
 							DragConstraint = "Viewport",
-							DropResetsPosition = false,
+							DropResetsPosition = true,
 							DragBegin = function()
 								self:setState({dragging = true})
 							end,

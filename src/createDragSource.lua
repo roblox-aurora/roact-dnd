@@ -115,14 +115,19 @@ local function createDragSource(innerComponent, defaults)
 			}
 
 
-			local absolute = began.AbsolutePosition
-			offsetPosition = UDim2.new(0, absolute.X, 0, absolute.Y)
-			state.position = offsetPosition
-			-- Perform some cool hacks :)
-			dragController:SetSnapMargin({
-				Vertical = Vector2.new(-absolute.X, 0),
-				Horizontal = Vector2.new(-absolute.Y, 0),
-			})
+			if self.props.IsDragModal then
+				local absolute = began.AbsolutePosition
+				offsetPosition = UDim2.new(0, absolute.X, 0, absolute.Y)
+				state.position = offsetPosition
+
+				-- Offset the margin, since we're using a modal
+				-- respresentation of the object here, which is portaled rather than a descendant of
+				-- the drag source's parent
+				dragController:SetSnapMargin({
+					Vertical = Vector2.new(-absolute.X, absolute.X),
+					Horizontal = Vector2.new(-absolute.Y, absolute.Y),
+				})
+			end
 
 			self:setState(state);
 			dropContext:dispatch({type = "DRAG/BEGIN", source = self._binding})
@@ -192,6 +197,8 @@ local function createDragSource(innerComponent, defaults)
 	end
 
 	function Connection:setLegacyDraggable(dragGui)
+		warn("[roact-dnd] Using the legacy drag controller")
+
 		local props = self.props
 		local snapBehaviour = props.DragConstraint or "None"
 		local canDrag = props.CanDrag or function()
@@ -412,7 +419,6 @@ local function createDragSource(innerComponent, defaults)
 		if self.props.DragController == "Snapdragon" then
 			self:setSnapdragonDraggable(gui)
 		else
-			warn("[roact-dnd] Using legacy drag controller")
 			self:setLegacyDraggable(gui)
 		end
 	end

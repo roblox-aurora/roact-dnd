@@ -4,7 +4,7 @@ author = "Vorlias"
 license = "MIT"
 content_root = "src"
 version = "0.2.0"
-dependencies_root = "packages"
+dependencies_root = "."
 
 [dependencies]
 Snapdragon = "github.com/roblox-aurora/rbx-snapdragon"

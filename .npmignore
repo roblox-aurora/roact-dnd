@@ -2,5 +2,6 @@
 !*.d.ts
 !src/*.lua
 !src/**/*.lua
-!packages/**/*.lua
+!_index/**/*.lua
+!*.lua
 ._*

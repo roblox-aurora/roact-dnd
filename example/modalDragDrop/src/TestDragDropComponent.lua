@@ -47,7 +47,7 @@ function TestDragDropComponent:render()
 						{
 							DropId = "Ex2",
 							TargetData = "Hello, World!",
-							IsDragModal = true,
+							IsDragModal = false,
 							DragController = "Snapdragon",
 							BackgroundTransparency = 0.5,
 							Size = UDim2.new(0, 100, 0, 100),

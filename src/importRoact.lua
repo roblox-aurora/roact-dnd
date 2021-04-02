@@ -8,7 +8,7 @@ local function importRoact(...)
     local path
     if TS then
         -- TypeScript's imports are a bit different here.
-        path = TS.getModule(script, "roact").roact.src
+        path = TS.getModule(script, "roact").src
     else
         local relative = script.Parent.Parent:FindFirstChild("Roact")
         if relative then

@@ -95,7 +95,7 @@ local function createDragSource(innerComponent, defaults)
 			CanDrag = function()
 				return canDrag(self.props.TargetData)
 			end,
-			-- Debugging = true,
+			Debugging = true,
 			-- DragPositionMode = "Offset",
 			DragEndedResetsPosition = dropResetsPosition,
 			DragRelativeTo = "LayerCollector",
@@ -133,10 +133,10 @@ local function createDragSource(innerComponent, defaults)
 			dropContext:dispatch({type = "DRAG/BEGIN", source = self._binding})
 		end)
 
-		dragController.DragChanged:Connect(function(e)
+		dragController.DragChanged:Connect(function(changed)
 			self:setState(
 				{
-					position = offsetPosition and e.GuiPosition + offsetPosition or e.GuiPosition
+					position = offsetPosition and changed.GuiPosition + offsetPosition or changed.GuiPosition
 				}
 			)
 		end)
@@ -450,7 +450,7 @@ local function createDragSource(innerComponent, defaults)
 			self._dragEvent = nil
 		end
 
-		local context = self._context[storeKey]
+		local context = self:__getContext(storeKey)
 		context:dispatch({type = "REGISTRY/REMOVE_SOURCE", source = self._binding})
 		self._bindingUpdate(nil)
 	end

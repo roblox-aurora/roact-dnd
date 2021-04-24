@@ -18,6 +18,7 @@ return function(Roact)
 					key ~= "DropId" and key ~= "TargetData" and key ~= "DragConstraint" and key ~= "DropResetsPosition" and
 						key ~= "CanDrag" and
 						key ~= "DragBegin" and
+						key ~= "OnDragging" and
 						key ~= "DragEnd" and
 						key ~= "IsDragModal"
 				 then
@@ -106,7 +107,7 @@ return function(Roact)
 					local delta = input.Position - self.state.dragStart
 
 					if mouseDown and self.state.dragging then
-						dropContext:dispatch({type = "DRAG/DRAGGING", source = self.binding})
+						dropContext:dispatch({type = "DRAG/DRAGGING", source = self._binding})
 					end
 
 					if mouseDown and delta.Magnitude >= 5 and not self.state.dragging then

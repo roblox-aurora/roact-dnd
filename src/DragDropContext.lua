@@ -27,6 +27,7 @@ local function _addSource(self, binding, props)
 	local data = props.TargetData
 	local dragEnd = props.DragEnd
 	local dragBegin = props.DragBegin
+	local onDragging = props.OnDragging
 
 	assert(Type.of(binding) == Type.Binding, "Expected Binding")
 	assert(type(dropId) == "string" or type(dropId) == "number")
@@ -38,7 +39,8 @@ local function _addSource(self, binding, props)
 		dragBegin = dragBegin,
 		target = {},
 		Id = HttpService:GenerateGUID(false),
-		dragEnd = dragEnd
+		dragEnd = dragEnd,
+		onDragging = onDragging,
 	}
 end
 
@@ -155,6 +157,13 @@ function DragDropContext:dispatch(action)
 
 		if type(source.dragBegin) == "function" then
 			source.dragBegin()
+		end
+	elseif action.type == "DRAG/DRAGGING" then
+		assert(Type.of(action.source) == Type.Binding)
+		local source = assert(dragSources[action.source])
+
+		if type(source.onDragging) == "function" then
+			source.onDragging()
 		end
 	elseif action.type == "DRAG/END" then
 		assert(Type.of(action.source) == Type.Binding)

@@ -1,6 +1,6 @@
-<div align="center">
+<!-- <div align="center">
 	<img src="https://assets.vorlias.com/i1/roact-dnd.png"/>
-</div>
+</div> -->
 <div align="center">
   <h1>Roact Drag and Drop (D&D)</h1>
 </div>

@@ -1,4 +1,4 @@
-local RoactPath = script.Parent:FindFirstAncestor("node_modules"):WaitForChild("roact").roact.src
+local RoactPath = script.Parent:FindFirstAncestor("node_modules"):WaitForChild("roact").src
 local Roact = require(RoactPath)
 local parent = script.Parent
 local createDragSource = require(parent.createDragSource)(Roact)

@@ -1,27 +1,73 @@
+--!strict
 local HttpService = game:GetService("HttpService")
-local Symbol = require(script.Parent.Symbol)
+local Types = require(script.Parent.types)
 
-local DragSources = Symbol.named("SOURCE")
-local DropTargets = Symbol.named("TARGET")
+export type Target = {
+	Binding: Types.RoactDnDBinding,
+	Target: DropTarget,
+	OnDrop: ((unknown, GuiObject?) -> ())?,
+	Priority: number,
+}
 
-local DragDropContext = {}
+type BindingTarget = Types.RoactDnDBinding
+type BindingSourceProps = Types.BindingSourceProps
+
+export type DragDropImpl = {
+	__index: DragDropImpl,
+
+	new: () -> DragDropContext,
+
+	GetSource: (self: DragDropContext, binding: Types.RoactDnDBinding) -> (DragSource, GuiObject?),
+	GetTargetsByDropId: (self: DragDropContext, dropId: string) -> { Target },
+	dispatch: (self: DragDropContext, action: Types.DragDropContextActions) -> (),
+
+	-- roblox-ts thingy
+	constructor: () -> (),
+
+	Type: Types.RoactType,
+	Default: DragDropContext,
+}
+export type DragDropProto = {
+	dragSources: { [Types.RoactDnDBinding]: DragSource },
+	dropTargets: { [Types.RoactDnDBinding]: DropTarget },
+}
+export type DragDropContext = typeof(setmetatable({} :: DragDropProto, {} :: DragDropImpl))
+
+type DragSource = {
+	dropId: string,
+	data: unknown,
+	dragBegin: (() -> ())?,
+	target: unknown,
+	Id: string,
+	dragEnd: ((hasDropTarget: boolean) -> ())?,
+}
+
+type DropTarget = {
+	dropIds: { string } | string,
+	onDrop: ((unknown, GuiObject?) -> ())?,
+	priority: number?,
+	canDrop: ((targetData: unknown) -> boolean)?,
+	Id: string,
+}
+
+local DragDropContext = {} :: DragDropImpl
 DragDropContext.__index = DragDropContext
 
 function DragDropContext.new()
-	local self = {
-		[DragSources] = {},
-		[DropTargets] = {}
+	local self: DragDropProto = {
+		dragSources = {},
+		dropTargets = {},
 	}
 	return setmetatable(self, DragDropContext)
 end
 
 function DragDropContext.constructor()
 	-- Prevent inheritance in roblox-ts
-	error("Cannot inherit type of DragDropContext", 2);
+	error("Cannot inherit type of DragDropContext", 2)
 end
 
-local function _addSource(self, binding, props)
-	local Type = DragDropContext.Type
+local function _addSource(self: DragDropContext, binding: Types.RoactDnDBinding, props: Types.DragSourceProps)
+	local Type = DragDropContext.Type :: Types.RoactType
 
 	local dropId = props.DropId
 	local data = props.TargetData
@@ -32,18 +78,18 @@ local function _addSource(self, binding, props)
 	assert(type(dropId) == "string" or type(dropId) == "number")
 	assert(data ~= nil)
 
-	self[DragSources][binding] = {
+	self.dragSources[binding] = {
 		dropId = dropId,
 		data = data,
 		dragBegin = dragBegin,
 		target = {},
 		Id = HttpService:GenerateGUID(false),
-		dragEnd = dragEnd
+		dragEnd = dragEnd,
 	}
 end
 
-local function _addTarget(self, binding, props)
-	local Type = DragDropContext.Type
+local function _addTarget(self: DragDropContext, binding: Types.RoactDnDBinding, props: Types.DropTargetProps)
+	local Type = DragDropContext.Type :: Types.RoactType
 
 	local dropIds, onDrop, priority = props.DropId, props.TargetDropped, props.TargetPriority or 1
 	local canDrop = props.CanDrop
@@ -52,26 +98,26 @@ local function _addTarget(self, binding, props)
 	assert(type(onDrop) == "function", ("OnDrop is of type %s, expected function"):format(typeof(onDrop)))
 	assert(type(priority) == "number")
 
-	self[DropTargets][binding] = {
-		dropIds = type(dropIds) == "table" and dropIds or {dropIds},
+	self.dropTargets[binding] = {
+		dropIds = type(dropIds) == "table" and dropIds or { dropIds },
 		onDrop = onDrop,
 		priority = priority,
 		canDrop = canDrop,
-		Id = HttpService:GenerateGUID(false)
+		Id = HttpService:GenerateGUID(false),
 	}
 end
 
-local function _removeTarget(self, binding)
-	local Type = DragDropContext.Type
+local function _removeTarget(self: DragDropContext, binding: Types.RoactDnDBinding)
+	local Type = DragDropContext.Type :: Types.RoactType
 
 	assert(Type.of(binding) == Type.Binding)
-	self[DropTargets][binding] = nil
+	self.dropTargets[binding] = nil
 end
 
-local function _removeSource(self, binding)
-	local Type = DragDropContext.Type
+local function _removeSource(self: DragDropContext, binding: Types.RoactDnDBinding)
+	local Type = DragDropContext.Type :: Types.RoactType
 	assert(Type.of(binding) == Type.Binding)
-	self[DragSources][binding] = nil
+	self.dragSources[binding] = nil
 end
 
 local function contains(tbl, value)
@@ -85,40 +131,31 @@ local function contains(tbl, value)
 end
 
 function DragDropContext:GetSource(binding)
-	return self[DragSources][binding], binding:getValue()
+	return self.dragSources[binding], binding:getValue()
 end
 
 function DragDropContext:GetTargetsByDropId(dropId)
-	local targets = {}
+	local targets: { Target } = {}
 
-	for binding, target in next, self[DropTargets] do
+	for binding, target in self.dropTargets do
 		if contains(target.dropIds, dropId) then
-			table.insert(targets, {Binding = binding, Target = target, OnDrop = target.onDrop, Priority = target.priority})
+			table.insert(
+				targets,
+				{ Binding = binding, Target = target, OnDrop = target.onDrop, Priority = target.priority or 0 }
+			)
 		end
 	end
 
-	table.sort(
-		targets,
-		function(a, b)
-			return a.Priority > b.Priority
-		end
-	)
+	table.sort(targets, function(a, b)
+		return a.Priority > b.Priority
+	end)
 
 	return targets
 end
 
-function DragDropContext:dispatch(action)
+function DragDropContext:dispatch(action: Types.DragDropContextActions)
 	print("DragDropContext::dispatch", action.type)
-	local Type = DragDropContext.Type
-
-	-- Thunk-like dispatch
-	if type(action) == "function" then
-		coroutine.wrap(action)(
-			function(...)
-				self:dispatch(...)
-			end
-		)
-	end
+	local Type = DragDropContext.Type :: Types.RoactType
 
 	if type(action) ~= "table" then
 		error("Invalid dispatch params")
@@ -128,15 +165,15 @@ function DragDropContext:dispatch(action)
 		error("action.type must be a string!")
 	end
 
-	local dragSources = self[DragSources]
-	local dropTargets = self[DropTargets]
+	local dragSources = self.dragSources
+	local dropTargets = self.dropTargets
 
 	if action.type == "DROP/TARGET" then
 		assert(type(action.dropId) == "string")
 		assert(type(action.data) ~= "nil")
 		assert(Type.of(action.source) == Type.Binding)
 		assert(Type.of(action.target) == Type.Binding)
-		-- local source = assert(dragSources[action.source])
+
 		local target = assert(dropTargets[action.target])
 
 		local canDrop = true
@@ -147,7 +184,10 @@ function DragDropContext:dispatch(action)
 		if canDrop then
 			local gui = action.source:getValue()
 			-- Run callback TargetDropped on the user side
-			target.onDrop(action.data, gui)
+
+			if target.onDrop and gui then
+				target.onDrop(action.data, gui)
+			end
 		end
 	elseif action.type == "DRAG/BEGIN" then
 		assert(Type.of(action.source) == Type.Binding)

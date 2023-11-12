@@ -5,3 +5,5 @@
 !_index/**/*.lua
 !*.lua
 ._*
+!default.project.json
+!Packages/**/*.lua

@@ -4,24 +4,6 @@ import "@rbxts/types";
 export as namespace RoactDnD;
 export = RoactDnD;
 
-interface StatefulComponent<P> extends Roact.RenderablePropsClass<P> {}
-
-interface FunctionalComponent<P> {
-	(props: P): Roact.Element | undefined;
-}
-
-interface DragSourceWrapper<P> {
-	new (props: P): {
-		render(): Roact.Element | undefined;
-	};
-}
-
-interface DragTargetWrapper<P> {
-	new (props: P): {
-		render(): Roact.Element | undefined;
-	};
-}
-
 type DropId = string | number | symbol;
 
 interface IDragDropHandler<DropIdTypes, T extends Instance> {
@@ -29,7 +11,7 @@ interface IDragDropHandler<DropIdTypes, T extends Instance> {
 	Ref?: (rbx: T) => void;
 }
 
-interface IDropTarget<T extends GuiObject>
+interface IDropTarget<T extends GuiObject, TData = unknown>
 	extends IDragDropHandler<DropId | Array<DropId>, T> {
 	/**
 	 * An event that's called when a `DragSource` is successfully dropped onto this target
@@ -58,15 +40,15 @@ interface IDropTarget<T extends GuiObject>
 	TargetPriority?: number;
 }
 
-interface IDragSource<T extends GuiObject> extends IDragDropHandler<DropId, T> {
+interface IDragSource<T extends GuiObject, TData = unknown> extends IDragDropHandler<DropId, T> {
 	/** The data that will be sent to the `DropTarget` if this `DragSource` successfully drops on this target */
-	TargetData: unknown;
+	TargetData: TData;
 
 	/**
 	 * Controls whether or not this item can be dragged
 	 * @param targetData The target data of this item
 	 */
-	CanDrag?: (targetData: unknown) => boolean;
+	CanDrag?: (targetData: TData) => boolean;
 
 	/**
 	 * Called when the drag begins
@@ -129,17 +111,6 @@ declare namespace RoactDnD {
 		constructor(props: DragDropProviderProps);
 		public render(): Roact.Element;
 	}
-
-	// export function createDragSource<P, A extends unknown>(
-	//   innerComponent: keyof CreatableInstances, // StatefulComponent<P>,
-	//   options?: IDraggableOptions
-	// ): DragSourceWrapper<P>;
-
-	// export function createDragTarget<P, A extends unknown>(
-	//     innerComponent: keyof CreatableInstances, // StatefulComponent<P>,
-	//     onDragEnd: (data: A) => void,
-	//     options?: IDraggableOptions
-	// ): DragTargetWrapper<P>;
 
 	class DragFrame extends Roact.Component<
 		IDragSource<Frame> & Roact.JsxObject<Frame>

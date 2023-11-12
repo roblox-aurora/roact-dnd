@@ -1,21 +1,60 @@
+--!strict
 local importRoact = require(script.Parent.importRoact)
-local Roact = importRoact()
+local Types = require(script.Parent.types)
+local Roact = importRoact() :: Types.Roact
+local DragDropContext = require(script.Parent.DragDropContext)
 
 local storeKey = require(script.Parent.storeKey)
 local elementKind = require(script.Parent.elementKind)
 local join = require(script.Parent.join)
 
-local function createDropTarget(innerComponent, defaults)
+type DragTargetProps = {
+	DropId: string,
+	TargetDropped: (targetData: unknown) -> (),
+	CanDrop: ((targetData: unknown) -> boolean)?,
+	TargetHover: ((targetData: unknown, component: Instance) -> boolean)?,
+	TargetPriority: number?,
+}
+
+type DragTargetState = {
+	computedProps: DragTargetProps,
+}
+
+type DropTargetComponent = {
+	init: (self: DropTargetComponent, props: DragTargetProps) -> (),
+	didUpdate: (self: DropTargetComponent, prevProps: DragTargetProps) -> (),
+	didMount: (self: DropTargetComponent) -> (),
+	willUnmount: (self: DropTargetComponent) -> (),
+	_context: { [string]: unknown },
+	render: (self: DropTargetComponent) -> Types.RoactElement?,
+
+	props: DragTargetProps,
+	state: DragTargetState,
+
+	computeProps: (self: DropTargetComponent) -> DragTargetProps,
+
+	_binding: Types.RoactBinding<GuiObject>,
+	_alive: boolean,
+	_bindingUpdate: Types.RoactBindingFunction<GuiObject>,
+
+	__getContext: (self: DropTargetComponent, key: unknown) -> unknown,
+}
+
+type DragTargetComputedProps = DragTargetProps & { [string]: unknown }
+local function createDropTarget(innerComponent: Types.RoactAnyComponent<unknown>, defaults: DragTargetComputedProps)
 	local componentName = ("DropTarget(%s)"):format(tostring(innerComponent))
-	local Connection = Roact.PureComponent:extend(componentName)
+	local Connection = Roact.PureComponent:extend(componentName) :: DropTargetComponent
 
 	function Connection:computeProps()
-		local computedProps = defaults or {}
-		for key, value in next, self.props do
+		local computedProps = table.clone(defaults)
+		for key, value in pairs(self.props) do
 			if
-				key ~= "DropId" and key ~= "TargetDropped" and key ~= "TargetPriority" and key ~= "CanDrop" and
-					key ~= "TargetHover"
-				then
+				key ~= "DropId"
+				and key ~= "TargetDropped"
+				and key ~= "TargetPriority"
+				and key ~= "CanDrop"
+				and key ~= "TargetHover"
+			then
 				computedProps[key] = value
 			end
 		end
@@ -23,7 +62,7 @@ local function createDropTarget(innerComponent, defaults)
 	end
 
 	function Connection:init(props)
-		local dropContext = self:__getContext(storeKey)
+		local dropContext = self:__getContext(storeKey) :: DragDropContext.DragDropContext
 		if not dropContext then
 			error("A top-level DragDropProvider was not provided in the heirachy.")
 		end
@@ -37,24 +76,24 @@ local function createDropTarget(innerComponent, defaults)
 		end
 
 		self.state = {
-			computedProps = self:computeProps()
+			computedProps = self:computeProps(),
 		}
 
-		local binding, bindingUpdate = Roact.createBinding(nil)
+		local binding, bindingUpdate = Roact.createBinding(nil :: GuiObject?)
 		self._bindingUpdate = bindingUpdate
 		self._binding = binding
 	end
 
 	function Connection:willUnmount()
-		local context = self:__getContext(storeKey)
-		context:dispatch({type = "REGISTRY/REMOVE_TARGET", target = self._binding})
+		local context = self:__getContext(storeKey) :: DragDropContext.DragDropContext
+		context:dispatch({ type = "REGISTRY/REMOVE_TARGET", target = self._binding })
 
 		self._bindingUpdate(nil)
 	end
 
 	function Connection:didMount()
-		local context = self:__getContext(storeKey)
-		context:dispatch({type = "REGISTRY/ADD_TARGET", target = self._binding, props = self.props})
+		local context = self:__getContext(storeKey) :: DragDropContext.DragDropContext
+		context:dispatch({ type = "REGISTRY/ADD_TARGET", target = self._binding, props = self.props })
 	end
 
 	function Connection:render()
@@ -74,13 +113,10 @@ local function createDropTarget(innerComponent, defaults)
 
 			return Roact.createElement(
 				innerComponent,
-				join(
-					self.state.computedProps,
-					{
-						[Roact.Ref] = refFn,
-						[Roact.Children] = self.props[Roact.Children]
-					}
-				)
+				join(self.state.computedProps, {
+					[Roact.Ref] = refFn,
+					[Roact.Children] = self.props[Roact.Children],
+				})
 			)
 		else
 			return nil

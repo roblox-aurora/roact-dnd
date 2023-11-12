@@ -1,6 +1,12 @@
 {
-  "name": "RoactDnD",
+  "name": "roact-dnd",
   "tree": {
-    "$path": "src"
+    "$path": "src",
+    "node_modules": {
+      "$path": { "optional": "node_modules/@rbxts" }
+    },
+    "Packages": {
+      "$path": "Packages"
+    }
   }
 }

@@ -124,8 +124,8 @@ declare namespace RoactDnD {
 		public render(): Roact.Element;
 	}
 
-	class DragImageButton extends Roact.Component<
-		IDragSource<ImageButton> & Roact.JsxObject<ImageButton>
+	class DragImageButton<TData> extends Roact.Component<
+		IDragSource<ImageButton, TData> & Roact.JsxObject<ImageButton>
 	> {
 		public render(): Roact.Element;
 	}

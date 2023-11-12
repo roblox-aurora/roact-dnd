@@ -154,7 +154,6 @@ function DragDropContext:GetTargetsByDropId(dropId)
 end
 
 function DragDropContext:dispatch(action: Types.DragDropContextActions)
-	print("DragDropContext::dispatch", action.type)
 	local Type = DragDropContext.Type :: Types.RoactType
 
 	if type(action) ~= "table" then

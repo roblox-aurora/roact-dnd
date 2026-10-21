@@ -1,9 +1,13 @@
-local function pointsIntersect(instPos, instEndPos, intersectPos, intersectEndPos)
-	return (instEndPos.X > intersectPos.X and instEndPos.Y > intersectPos.Y and instPos.X < intersectEndPos.X and
-		instPos.Y < intersectEndPos.Y)
+local function pointsIntersect(instPos: Vector2, instEndPos: Vector2, intersectPos: Vector2, intersectEndPos: Vector2)
+	return (
+		instEndPos.X > intersectPos.X
+		and instEndPos.Y > intersectPos.Y
+		and instPos.X < intersectEndPos.X
+		and instPos.Y < intersectEndPos.Y
+	)
 end
 
-local function deepEqual(t1, t2, ignore_mt)
+local function deepEqual(t1: any, t2: any, ignore_mt: boolean?): boolean
 	local ty1 = type(t1)
 	local ty2 = type(t2)
 	if ty1 ~= ty2 then
@@ -33,7 +37,7 @@ local function deepEqual(t1, t2, ignore_mt)
 	return true
 end
 
-local function equal(t1, t2, ignore_mt)
+local function equal(t1: any, t2: any, ignore_mt: boolean?): boolean
 	local ty1 = type(t1)
 	local ty2 = type(t2)
 	if ty1 ~= ty2 then

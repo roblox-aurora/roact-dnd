@@ -1,1 +1,8 @@
 node_modules
+Packages
+roblox.toml
+*.tgz
+/Snapdragon.lua
+/_index
+/._*
+sourcemap.json
